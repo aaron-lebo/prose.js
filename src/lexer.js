@@ -70,9 +70,9 @@ let tokenizers = {
     string: str => {
         let chr = str[0],
             len = 1;
-        if (['"', "'"].indexOf(chr) == -1) {
+        if (!'"\''.includes(chr)) {
             return {len: 0};
-        }
+        } 
         while (str[len] != chr || str[len - 1] == '\\') {
             len += 1;
         }
