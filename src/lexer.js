@@ -7,7 +7,7 @@ function numeric(chr) {
 }
 
 function special(chr) {
-    return '~!@#$%^&*-_=+|?'.includes(chr);
+    return '~!@#$%^&*-_=+|/?'.includes(chr);
 }
 
 let tokenizers = {
@@ -21,7 +21,7 @@ let tokenizers = {
             ')': 'rightParen',
             ':': 'colon',
             ',': 'comma',
-            '\\n': 'newline',
+            '\n': 'newline',
             '.': 'period',
             ';': 'semicolon'
         }[str[0]];
@@ -46,23 +46,23 @@ let tokenizers = {
         } 
         return {type: 'operator', len: len};
     },
-    symbol: str => { 
+    name: str => { 
         let len = 0, 
             chr = str[len];
-        if (special(chr) || alpha(chr)) {
+        if (alpha(chr) || special(chr)) {
             len = 1;
         } else {
             return {len: len}
         } 
-        while (special(chr) || alpha(chr) || numeric(chr)) {
+        while (alpha(chr) || numeric(chr) || special(chr)) {
             len += 1;
             chr = str[len];
         }
-        return {type: 'symbol', len: len};
+        return {type: 'name', len: len};
     },
     whitespace: str => {
         let len = 0;
-        while (/\s/.test(str[len])) {
+        while (str[len] != '\n' && /\s/.test(str[len])) {
             len += 1;
         }
         return {type: 'whitespace', len: len};
@@ -70,7 +70,7 @@ let tokenizers = {
     string: str => {
         let chr = str[0],
             len = 1;
-        if (!'"\''.includes(chr)) {
+        if (['"', "'"].indexOf(chr) == -1) {
             return {len: 0};
         } 
         while (str[len] != chr || str[len - 1] == '\\') {
@@ -92,7 +92,7 @@ export default function lex(str) {
                 token.line = line;
                 token.value = str.substring(0, len);
                 tokens.push(token);
-                line += token.value.match(/\n/g) || 0;
+                line += (token.value.match(/\n/) || []).length;
                 str = str.substring(len);
                 break;
             }
