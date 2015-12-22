@@ -1,23 +1,19 @@
 function node(head) {
-    return token => {
-        return {
-            head: head, 
-            args: [token.value], 
-            line: token.line
-        };
-    };
+    return {
+        parse: token => {
+            return {
+                head: head, 
+                args: [token.value], 
+                line: token.line
+            };
+        }
+    }
 }
 
 let prefixes = { 
-    name: {
-        parse: node('name') 
-    },
-    number: {
-        parse: node('number') 
-    },
-    string: {
-        parse: node('string') 
-    },
+    name: node('name') ,
+    number: node('number'), 
+    string: node('string') ,
     newline: { 
         parse: token => {} 
     }
