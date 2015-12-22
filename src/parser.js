@@ -1,46 +1,42 @@
+function node(head) {
+    return token => {
+        return {
+            head: head, 
+            args: [token.value], 
+            line: token.line
+        };
+    };
+}
+
 let prefixes = { 
     name: {
-        parse: token => {
-            return token;
-        }
+        parse: node('name') 
     },
     number: {
-        parse: token => {
-            return token;
-        }
+        parse: node('number') 
     },
     string: {
-        parse: token => {
-            return token;
-        }
+        parse: node('string') 
     },
     newline: { 
-        parse: token => {
-            return;
-        }
-    },
-    whitespace: {
-        parse: token => {
-            return token;
-        }
+        parse: token => {} 
     }
 };
 
 let infixes = { 
     leftParen: {
         parse: (tokens, left, token) => {
-            let next,
-                args = [];
+            let args = [];
             while (true) {
-                next = tokens.shift();
+                let next = tokens.shift();
                 if (!next) {
                     throw 'expected: , or )';
                 } 
                 if (next.type == 'rightParen') {
-                    return [left.value, left, args];
+                    return {head: left.args[0], meta: left, args: args};
                 }
                 if ('comma' != next.type) {
-                    args.push(next);
+                    args.push(prefixes[next.type].parse(next));
                 }
            }
         }
@@ -64,10 +60,9 @@ function parseX(tokens) {
 }
 
 export default function parse(tokens) {
-    let token, 
-        ast = [];
+    let ast = [];
     while (tokens.length > 0) {
-        token = parseX(tokens);
+        let token = parseX(tokens);
         if (token) {
             ast.push(token);
         }

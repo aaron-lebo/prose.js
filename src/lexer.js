@@ -79,7 +79,7 @@ let tokenizers = {
 
 export default function lex(str) {
     let len, 
-        line = 0, 
+        line = 1, 
         tokens = [];
     while (str.length > 0) {
         for (let tokenizer in tokenizers) {
