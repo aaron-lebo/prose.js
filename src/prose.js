@@ -7,4 +7,5 @@ import parse from './parser';
 
 let file = fs.readFileSync(process.argv[2]),
     tokens = lex(file.toString()); 
-parse(tokens);
+
+console.log(parse(tokens));

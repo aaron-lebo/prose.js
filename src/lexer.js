@@ -10,26 +10,27 @@ function special(chr) {
     return '~!@#$%^&*-_=+|/?'.includes(chr);
 }
 
-let tokenizers = {
-    singleChars: str => {
-        let token = {
-            '[': 'leftBracket',
-            ']': 'rightBracket',
-            '{': 'leftCurly',
-            '}': 'rightCurly',
-            '(': 'leftParen',
-            ')': 'rightParen',
-            ':': 'colon',
-            ',': 'comma',
-            '\n': 'newline',
-            '.': 'period',
-            ';': 'semicolon'
-        }[str[0]];
+function match(regex) {
+   return str => {
+        let token = str.match(regex);
         if (token) {
-            return {type: token, len: 1};
+            return token[0].length;
         }
-        return {len: 0};
-    },
+    }
+}
+
+let tokenizers = {
+    newline: match(/^\s*\n\s*/),
+    leftParen: match(/^\(\s*/),
+    rightParen: match(/^\s*\)/),
+    leftBracket: match(/^\[\s*/),
+    rightBracket: match(/^\s*\]/),
+    leftCurly: match(/^{\s*/),
+    rightCurly: match(/^\s*}/),
+    comma: match(/^\s*,\s*/),
+    colon: match(/:/),
+    period: match(/\./),
+    semicolon: match(/;/),
     number: str =>  {
         let len = 0,
             chr = str[0]; 
@@ -37,67 +38,71 @@ let tokenizers = {
             len += 1;
             chr = str[len]; 
         }
-        return {type: 'number', len: len};
+        return len;
     },
     operator: str => {
         let len = 0; 
         while (special(str[len])) {
             len += 1;
         } 
-        return {type: 'operator', len: len};
+        return len;
     },
     name: str => { 
         let len = 0, 
             chr = str[len];
         if (alpha(chr) || special(chr)) {
             len = 1;
+            chr = str[1];
         } else {
-            return {len: len}
+            return len
         } 
         while (alpha(chr) || numeric(chr) || special(chr)) {
             len += 1;
             chr = str[len];
         }
-        return {type: 'name', len: len};
+        return len;
     },
-    whitespace: str => {
+    space: str => {
         let len = 0;
         while (str[len] != '\n' && /\s/.test(str[len])) {
             len += 1;
         }
-        return {type: 'whitespace', len: len};
+        return len;
     },
     string: str => {
         let chr = str[0],
             len = 1;
         if (['"', "'"].indexOf(chr) == -1) {
-            return {len: 0};
+            return 0;
         } 
         while (str[len] != chr || str[len - 1] == '\\') {
             len += 1;
         }
-        return {type: 'string', len: len + 1};
+        return len + 1;
     }
 };
 
 export default function lex(str) {
-    let line = 0, 
-        token = {},
+    let len, 
+        line = 0, 
         tokens = [];
     while (str.length > 0) {
         for (let tokenizer in tokenizers) {
-            token = tokenizers[tokenizer](str);
-            let {len} = token;
+            len = tokenizers[tokenizer](str);
             if (len > 0) {
-                token.line = line;
-                token.value = str.substring(0, len);
+                let token = {
+                    type: tokenizer, 
+                    len: len,
+                    line: line,
+                    value: str.substring(0, len)
+                };
                 tokens.push(token);
                 line += (token.value.match(/\n/) || []).length;
                 str = str.substring(len);
                 break;
             }
         }
-        if (token.len == 0) { 
+        if (len == 0) { 
             throw str.substring(0);
         }
     }
