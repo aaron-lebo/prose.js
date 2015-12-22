@@ -13,7 +13,7 @@ function node(head) {
 let prefixes = { 
     name: node('name'),
     number: node('number'), 
-    string: node('string') ,
+    string: node('string'),
     newline: { 
         parse: token => {} 
     }
