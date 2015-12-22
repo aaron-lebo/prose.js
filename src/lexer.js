@@ -11,12 +11,7 @@ function special(chr) {
 }
 
 function match(regex) {
-   return str => {
-        let token = str.match(regex);
-        if (token) {
-            return token[0].length;
-        }
-    }
+   return str => (str.match(regex) || {}).length;
 }
 
 let tokenizers = {
