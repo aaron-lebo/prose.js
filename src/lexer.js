@@ -14,7 +14,7 @@ function match(regex) {
     return str => {
         let matches = str.match(regex);
         return matches ? matches[0].length : 0;
-    }
+    };
 }
 
 let tokenizers = {
