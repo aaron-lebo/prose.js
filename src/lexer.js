@@ -11,7 +11,13 @@ function special(chr) {
 }
 
 function match(regex) {
-   return str => (str.match(regex) || []).length;
+    return str => {
+        let matches = str.match(regex);
+        if (matches) {
+            return matches[0].length;
+        }
+        return 0;
+    }
 }
 
 let tokenizers = {
@@ -58,6 +64,7 @@ let tokenizers = {
         return len;
     },
     space: str => {
+        return 0;
         let len = 0;
         while (str[len] != '\n' && /\s/.test(str[len])) {
             len += 1;

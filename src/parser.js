@@ -1,30 +1,26 @@
 function node(head) {
     return {
-        parse: token => {
+        prefix: t => {
             return {
                 head: head, 
-                args: [token.value], 
-                line: token.line
+                args: [t.value], 
+                line: t.line
             };
         }
     }
 }
 
-let prefixes = { 
+let symbols = { 
     name: node('name'),
     number: node('number'), 
     string: node('string'),
-    newline: { 
-        parse: token => {} 
-    }
-};
-
-let infixes = { 
+    newline: {},
     leftParen: {
-        parse: (tokens, left, token) => {
+        power: 1,
+        infix: (tokens, left, token) => {
             let args = [];
             while (true) {
-                let next = tokens.shift();
+                let next = tokens[0];
                 if (!next) {
                     throw 'expected: , or )';
                 } 
@@ -32,33 +28,35 @@ let infixes = {
                     return {head: left.args[0], meta: left, args: args};
                 }
                 if ('comma' != next.type) {
-                    args.push(prefixes[next.type].parse(next));
+                    args.push(expression(tokens, 1));
+                } else {
+                    tokens.shift();
                 }
            }
         }
-    }
+    },
+    rightParen: {},
+    comma: {},
 };
 
-function parseX(tokens) {
-    let token = tokens.shift(),
-        prefix = prefixes[token.type];
-    if (!prefix) {
-        throw 'line ' + token.line + ': could not parse "' + token.value + '"';
+function expression(tokens, power) {
+    let token = tokens.shift();
+    let symbol = symbols[token.type];
+    if (!symbol) {
+        throw token.line + ': could not parse "' + token.type + '"';
     }
-    let left = prefix.parse(token);
-    token = tokens[0] || {};
-    let infix = infixes[token.type];
-    if (!infix) {
-         return left;
+    let left = symbol.prefix && symbol.prefix(token);
+    while (tokens.length > 0 && power < (symbols[tokens[0].type].power || 0)) {
+        token = tokens.shift();
+        left = symbols[token.type].infix(tokens, left, token);
     }
-    tokens.shift();
-    return infix.parse(tokens, left, token);
+    return left;
 }
 
 export default function parse(tokens) {
     let ast = [];
     while (tokens.length > 0) {
-        let token = parseX(tokens);
+        let token = expression(tokens, 0);
         if (token) {
             ast.push(token);
         }
