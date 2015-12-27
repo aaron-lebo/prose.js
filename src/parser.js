@@ -25,7 +25,7 @@ let symbols = {
                     throw 'expected: , or )';
                 } 
                 if (next.type == 'rightParen') {
-                    return {head: left.args[0], meta: left, args: args};
+                    return {head: left.args[0], args: args, line: left.line};
                 }
                 if ('comma' != next.type) {
                     args.push(expression(tokens, 1));
@@ -39,7 +39,7 @@ let symbols = {
     comma: {},
 };
 
-function expression(tokens, power) {
+function expression(tokens, power=0) {
     let token = tokens.shift();
     let symbol = symbols[token.type];
     if (!symbol) {
@@ -56,9 +56,9 @@ function expression(tokens, power) {
 export default function parse(tokens) {
     let ast = [];
     while (tokens.length > 0) {
-        let token = expression(tokens, 0);
-        if (token) {
-            ast.push(token);
+        let node = expression(tokens);
+        if (node) {
+            ast.push(node);
         }
     }
     return ast;
