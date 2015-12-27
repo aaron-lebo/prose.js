@@ -10,7 +10,7 @@ function node(head) {
     }
 }
 
-let symbols = { 
+let parselets = { 
     name: node('name'),
     number: node('number'), 
     string: node('string'),
@@ -41,14 +41,14 @@ let symbols = {
 
 function expression(tokens, power=0) {
     let token = tokens.shift();
-    let symbol = symbols[token.type];
-    if (!symbol) {
+    let parselet = parselets[token.type];
+    if (!parselet) {
         throw token.line + ': could not parse "' + token.type + '"';
     }
-    let left = symbol.prefix && symbol.prefix(token);
-    while (tokens.length > 0 && power < (symbols[tokens[0].type].power || 0)) {
+    let left = parselet.prefix && parselet.prefix(token);
+    while (tokens.length > 0 && power < (parselets[tokens[0].type].power || 0)) {
         token = tokens.shift();
-        left = symbols[token.type].infix(tokens, left, token);
+        left = parselets[token.type].infix(tokens, left, token);
     }
     return left;
 }
