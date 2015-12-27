@@ -14,23 +14,33 @@ let parselets = {
     name: node('name'),
     number: node('number'), 
     string: node('string'),
+    space: {
+        power: 1,
+        infix: (left, token, tokens) => {
+            return {
+                head: 'space',
+                args: [left, expression(tokens, 1)],
+                line: token.line
+            };
+        } 
+    },
     newline: {},
     leftParen: {
-        power: 1,
-        infix: (tokens, left, token) => {
+        power: 2,
+        infix: (left, token, tokens) => {
             let args = [];
             while (true) {
                 let next = tokens[0];
                 if (!next) {
                     throw 'expected: , or )';
                 } 
+                if (['comma', 'rightParen'].indexOf(next.type) == -1) { 
+                    args.push(expression(tokens, 2));
+                    continue;
+                }
+                tokens.shift();
                 if (next.type == 'rightParen') {
                     return {head: left.args[0], args: args, line: left.line};
-                }
-                if ('comma' != next.type) {
-                    args.push(expression(tokens, 1));
-                } else {
-                    tokens.shift();
                 }
            }
         }
@@ -48,7 +58,7 @@ function expression(tokens, power=0) {
     let left = parselet.prefix && parselet.prefix(token);
     while (tokens.length > 0 && power < (parselets[tokens[0].type].power || 0)) {
         token = tokens.shift();
-        left = parselets[token.type].infix(tokens, left, token);
+        left = parselets[token.type].infix(left, token, tokens);
     }
     return left;
 }

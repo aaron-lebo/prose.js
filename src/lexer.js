@@ -61,7 +61,6 @@ let tokenizers = {
         return len;
     },
     space: str => {
-        return 0;
         let len = 0;
         while (str[len] != '\n' && /\s/.test(str[len])) {
             len += 1;
