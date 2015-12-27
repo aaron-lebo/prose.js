@@ -13,10 +13,7 @@ function special(chr) {
 function match(regex) {
     return str => {
         let matches = str.match(regex);
-        if (matches) {
-            return matches[0].length;
-        }
-        return 0;
+        return matches ? matches[0].length : 0;
     }
 }
 
