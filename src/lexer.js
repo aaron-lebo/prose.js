@@ -10,10 +10,10 @@ function special(chr) {
     return '~!@#$%^&*-_=+|/?'.includes(chr);
 }
 
-function match(regex) {
+function match(re) {
     return str => {
-        let matches = str.match(regex);
-        return matches ? matches[0].length : 0;
+        let match = re.exec(str);
+        return match ? match[0].length : 0;
     };
 }
 
