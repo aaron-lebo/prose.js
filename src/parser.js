@@ -14,6 +14,16 @@ let parselets = {
     name: node('name'),
     number: node('number'), 
     string: node('string'),
+    dot: {
+        power: 2,
+        infix: (left, token, tokens) => {
+            return {
+                head: 'dot',
+                args: [left, expression(tokens, 2)],
+                line: token.line
+            };
+        } 
+    },
     space: {
         power: 1,
         infix: (left, token, tokens) => {
@@ -26,7 +36,7 @@ let parselets = {
     },
     newline: {},
     leftParen: {
-        power: 2,
+        power: 3,
         infix: (left, token, tokens) => {
             let args = [];
             while (true) {
@@ -35,7 +45,7 @@ let parselets = {
                     throw 'expected: , or )';
                 } 
                 if (['comma', 'rightParen'].indexOf(next.type) == -1) { 
-                    args.push(expression(tokens, 2));
+                    args.push(expression(tokens, 3));
                     continue;
                 }
                 tokens.shift();

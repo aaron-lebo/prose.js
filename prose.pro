@@ -1,1 +1,1 @@
-a() b() c(3)
+1 console.log

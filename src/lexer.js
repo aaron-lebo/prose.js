@@ -18,6 +18,7 @@ function match(regex) {
 }
 
 let tokenizers = {
+    dot: match(/^\s*\.\s*/),
     newline: match(/^\s*\n\s*/),
     leftParen: match(/^\(\s*/),
     rightParen: match(/^\s*\)/),
@@ -27,7 +28,6 @@ let tokenizers = {
     rightCurly: match(/^\s*}/),
     comma: match(/^\s*,\s*/),
     colon: match(/:/),
-    period: match(/\./),
     semicolon: match(/;/),
     number: str =>  {
         let len = 0,
@@ -62,7 +62,7 @@ let tokenizers = {
     },
     space: str => {
         let len = 0;
-        while (str[len] != '\n' && /\s/.test(str[len])) {
+        while (/\s/.test(str[len])) {
             len += 1;
         }
         return len;
