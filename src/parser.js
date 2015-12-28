@@ -14,27 +14,6 @@ let parselets = {
     name: node('name'),
     number: node('number'), 
     string: node('string'),
-    dot: {
-        power: 2,
-        infix: (left, token, tokens) => {
-            return {
-                head: 'dot',
-                args: [left, expression(tokens, 2)],
-                line: token.line
-            };
-        } 
-    },
-    space: {
-        power: 1,
-        infix: (left, token, tokens) => {
-            return {
-                head: 'space',
-                args: [left, expression(tokens, 1)],
-                line: token.line
-            };
-        } 
-    },
-    newline: {},
     leftParen: {
         power: 3,
         infix: (left, token, tokens) => {
@@ -50,15 +29,37 @@ let parselets = {
                 }
                 tokens.shift();
                 if (next.type == 'rightParen') {
-                    return {head: left.args[0], args: args, line: left.line};
+                    return {
+                        head: left.args[0], 
+                        args: args, 
+                        line: left.line
+                    };
                 }
            }
         }
     },
     rightParen: {},
     comma: {},
+    newline: {},
 };
 
+function operator(head, power) {
+    parselets[head] = {
+        power: power,
+        infix: (left, token, tokens) => {
+            return {
+                head: head,
+                args: [left, expression(tokens, power)],
+                line: token.line
+            };
+        } 
+    };
+}
+
+operator('space', 1);
+operator('-', 2);
+operator('.', 3);
+ 
 function expression(tokens, power=0) {
     let token = tokens.shift();
     let parselet = parselets[token.type];
@@ -66,9 +67,11 @@ function expression(tokens, power=0) {
         throw token.line + ': could not parse "' + token.type + '"';
     }
     let left = parselet.prefix && parselet.prefix(token);
-    while (tokens.length > 0 && power < (parselets[tokens[0].type].power || 0)) {
+    let next = parselets[tokens[0] && tokens[0].type];
+    while (tokens.length > 0 && power < (next && next.power || 0)) {
         token = tokens.shift();
         left = parselets[token.type].infix(left, token, tokens);
+        next = parselets[tokens[0].type];
     }
     return left;
 }

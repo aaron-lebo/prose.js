@@ -19,7 +19,6 @@ function match(re) {
 
 let tokenizers = {
     dot: match(/^\s*\.\s*/),
-    newline: match(/^\s*\n\s*/),
     leftParen: match(/^\(\s*/),
     rightParen: match(/^\s*\)/),
     leftBracket: match(/^\[\s*/),
@@ -29,6 +28,9 @@ let tokenizers = {
     comma: match(/^\s*,\s*/),
     colon: match(/:/),
     semicolon: match(/;/),
+    operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|<>\/\?]+\s+/),
+    newline: match(/^\s*\n\s*/),
+    space: match(/^\s+/),
     number: str => {
         let len = 0,
             chr = str[0]; 
@@ -36,13 +38,6 @@ let tokenizers = {
             len += 1;
             chr = str[len]; 
         }
-        return len;
-    },
-    operator: str => {
-        let len = 0; 
-        while (special(str[len])) {
-            len += 1;
-        } 
         return len;
     },
     name: str => { 
@@ -57,13 +52,6 @@ let tokenizers = {
         while (alpha(chr) || numeric(chr) || special(chr)) {
             len += 1;
             chr = str[len];
-        }
-        return len;
-    },
-    space: str => {
-        let len = 0;
-        while (/\s/.test(str[len])) {
-            len += 1;
         }
         return len;
     },
@@ -88,14 +76,14 @@ export default function lex(str) {
         for (let tokenizer in tokenizers) {
             len = tokenizers[tokenizer](str);
             if (len > 0) {
-                let token = {
-                    type: tokenizer, 
+                let value = str.substring(0, len);
+                tokens.push({
+                    type: tokenizer == 'operator' ? value.replace(/\s/g, '') : tokenizer,
                     len: len,
                     line: line,
-                    value: str.substring(0, len)
-                };
-                tokens.push(token);
-                line += (token.value.match(/\n/) || []).length;
+                    value: value 
+                });
+                line += (value.match(/\n/) || []).length;
                 str = str.substring(len);
                 break;
             }
