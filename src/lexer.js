@@ -29,7 +29,7 @@ let tokenizers = {
     comma: match(/^\s*,\s*/),
     colon: match(/:/),
     semicolon: match(/;/),
-    number: str =>  {
+    number: str => {
         let len = 0,
             chr = str[0]; 
         while (chr >= '0' && chr <= '9') {
