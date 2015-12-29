@@ -26,9 +26,9 @@ let tokenizers = {
     leftCurly: match(/^{\s*/),
     rightCurly: match(/^\s*}/),
     ',': match(/^\s*,\s*/),
-    colon: match(/:/),
     semicolon: match(/;/),
-    operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|<>\/\?]+\s+/),
+    ':': match(/^\s*:\s+/),
+    operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
     newline: match(/^\s*\n\s*/),
     ' ': match(/^\s+/),
     number: str => {

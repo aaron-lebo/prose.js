@@ -56,10 +56,11 @@ function operator(head, power, infix) {
 }
 
 operator('newline', 0, (left, token, tokens) => left);
-operator('=', 1);
-operator(' ', 2);
-operator('-', 3);
-operator('.', 4);
+operator(':', 1);
+operator('=', 2);
+operator(' ', 3);
+operator('-', 4);
+operator('.', 5);
  
 function expression(tokens, power=0) {
     let token = tokens.shift();
