@@ -3,6 +3,7 @@ y = x - 1
 log = console.log
 x log
 
-a: 1
+a: 1 - 2 log 
 b : 2
-c :3
+
+log(1, b: 2)
