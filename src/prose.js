@@ -8,4 +8,4 @@ import parse from './parser';
 let file = fs.readFileSync(process.argv[2]),
     tokens = lex(file.toString()); 
 
-console.log(parse(tokens));
+console.log(JSON.stringify(parse(tokens), null, 2));

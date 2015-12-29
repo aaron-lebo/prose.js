@@ -6,4 +6,8 @@ x log
 a: 1 - 2 log 
 b : 2
 
-log(1, b: 2)
+console.log(1, b: 2)
+log(
+  1, 
+  b: 2
+)

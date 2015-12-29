@@ -15,7 +15,7 @@ let parselets = {
     number: node('number'), 
     string: node('string'),
     '(': {
-        power: 6,
+        power: 5,
         infix: (left, token, tokens) => {
             let args = [];
             while (true) {
@@ -30,7 +30,7 @@ let parselets = {
                 tokens.shift();
                 if (next.type == ')') {
                     return {
-                        head: left.args[0], 
+                        head: left, 
                         args: args, 
                         line: left.line
                     };
@@ -46,7 +46,6 @@ function operator(head, power, infix) {
     parselets[head] = {
         power: power,
         infix: infix ? infix : (left, token, tokens) => {
-            console.log(left, token, tokens);
             return {
                 head: head,
                 args: [left, expression(tokens, power)],
