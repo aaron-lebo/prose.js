@@ -14,7 +14,7 @@ let parselets = {
     name: node('name'),
     number: node('number'), 
     string: node('string'),
-    leftParen: {
+    '(': {
         power: 3,
         infix: (left, token, tokens) => {
             let args = [];
@@ -23,12 +23,12 @@ let parselets = {
                 if (!next) {
                     throw 'expected: , or )';
                 } 
-                if (['comma', 'rightParen'].indexOf(next.type) == -1) { 
+                if ([',', ')'].indexOf(next.type) == -1) { 
                     args.push(expression(tokens, 3));
                     continue;
                 }
                 tokens.shift();
-                if (next.type == 'rightParen') {
+                if (next.type == ')') {
                     return {
                         head: left.args[0], 
                         args: args, 
@@ -38,9 +38,14 @@ let parselets = {
             }
         }
     },
-    rightParen: {},
-    comma: {},
-    newline: {},
+    ')': {},
+    ',': {},
+    newline: {
+        power: 0.5,
+        infix: (left, token, tokens) => {
+            return left;
+        } 
+    },
 };
 
 function operator(head, power) {
@@ -72,7 +77,7 @@ function expression(tokens, power=0) {
     while (tokens.length > 0 && power < (next && next.power || 0)) {
         token = tokens.shift();
         left = parselets[token.type].infix(left, token, tokens);
-        next = parselets[tokens[0].type];
+        next = parselets[tokens[0] && tokens[0].type];
     }
     return left;
 }

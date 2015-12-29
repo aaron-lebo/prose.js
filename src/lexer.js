@@ -19,13 +19,13 @@ function match(re) {
 
 let tokenizers = {
     '.': match(/^\s*\.\s*/),
-    leftParen: match(/^\(\s*/),
-    rightParen: match(/^\s*\)/),
+    '(': match(/^\(\s*/),
+    ')': match(/^\s*\)/),
     leftBracket: match(/^\[\s*/),
     rightBracket: match(/^\s*\]/),
     leftCurly: match(/^{\s*/),
     rightCurly: match(/^\s*}/),
-    comma: match(/^\s*,\s*/),
+    ',': match(/^\s*,\s*/),
     colon: match(/:/),
     semicolon: match(/;/),
     operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|<>\/\?]+\s+/),
