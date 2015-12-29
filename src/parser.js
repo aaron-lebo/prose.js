@@ -41,7 +41,7 @@ let parselets = {
     ')': {},
     ',': {},
     newline: {
-        power: 0.5,
+        power: 0,
         infix: (left, token, tokens) => {
             return left;
         } 
