@@ -56,9 +56,10 @@ function operator(head, power) {
     };
 }
 
-operator('space', 1);
-operator('-', 2);
-operator('.', 3);
+operator('=', 1);
+operator(' ', 2);
+operator('-', 3);
+operator('.', 4);
  
 function expression(tokens, power=0) {
     let token = tokens.shift();

@@ -18,7 +18,7 @@ function match(re) {
 }
 
 let tokenizers = {
-    dot: match(/^\s*\.\s*/),
+    '.': match(/^\s*\.\s*/),
     leftParen: match(/^\(\s*/),
     rightParen: match(/^\s*\)/),
     leftBracket: match(/^\[\s*/),
@@ -30,7 +30,7 @@ let tokenizers = {
     semicolon: match(/;/),
     operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|<>\/\?]+\s+/),
     newline: match(/^\s*\n\s*/),
-    space: match(/^\s+/),
+    ' ': match(/^\s+/),
     number: str => {
         let len = 0,
             chr = str[0]; 
