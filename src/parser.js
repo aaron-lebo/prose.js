@@ -1,10 +1,10 @@
 function node(head) {
     return {
-        prefix: t => {
+        prefix: token => {
             return {
                 head: head, 
-                args: [t.value], 
-                line: t.line
+                args: [token.value], 
+                line: token.line
             };
         }
     }
