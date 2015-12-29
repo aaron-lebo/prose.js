@@ -5,6 +5,7 @@ x log
 
 a: 1 - 2 log 
 b : 2
+c
 
 console.log(1, b: 2)
 log(
