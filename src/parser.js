@@ -39,19 +39,13 @@ let parselets = {
         }
     },
     ')': {},
-    ',': {},
-    newline: {
-        power: 0,
-        infix: (left, token, tokens) => {
-            return left;
-        } 
-    },
+    ',': {}
 };
 
-function operator(head, power) {
+function operator(head, power, infix) {
     parselets[head] = {
         power: power,
-        infix: (left, token, tokens) => {
+        infix: infix ? infix : (left, token, tokens) => {
             return {
                 head: head,
                 args: [left, expression(tokens, power)],
@@ -61,6 +55,7 @@ function operator(head, power) {
     };
 }
 
+operator('newline', 0, (left, token, tokens) => left);
 operator('=', 1);
 operator(' ', 2);
 operator('-', 3);
