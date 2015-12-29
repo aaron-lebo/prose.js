@@ -35,7 +35,7 @@ let parselets = {
                         line: left.line
                     };
                 }
-           }
+            }
         }
     },
     rightParen: {},
