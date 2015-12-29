@@ -1,14 +1,10 @@
-x = 1 
-y = x - 1
-log = console.log
-x log
-
-a: 1 - 2 log 
-b : 2
-c
-
-console.log(1, b: 2)
-log(
-  1, 
-  b: 2
-)
+array = [1, 2, 3]
+array[0, -1]
+array := array map(x, x + x)
+array console.log
+set = {1, 2, 3}
+hash = {
+  a: 1, 
+  b: 2, 
+  c: 3
+}

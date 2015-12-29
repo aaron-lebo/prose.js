@@ -1,6 +1,6 @@
 function node(head) {
     return {
-        prefix: token => {
+        prefix: (token, tokens) => {
             return {
                 head: head, 
                 args: [token.value], 
@@ -10,34 +10,51 @@ function node(head) {
     }
 }
 
+function parseArgs(end, tokens) {
+    let args = [];
+    while (true) {
+        let next = tokens[0];
+        if (!next) {
+           throw 'expected: , or ' + end;
+        } 
+        if ([',', end].indexOf(next.type) == -1) { 
+            args.push(expression(tokens, 0));
+            continue;
+        }
+        tokens.shift();
+        if (next.type == end) {
+            return args;
+        }
+    }     
+}
+
+function wrapper(end) {
+    return {
+        power: 5,
+        prefix: (token, tokens) => {
+            return {
+                head: token.type, 
+                args: parseArgs(end, tokens), 
+                line: token.line
+            };
+        },
+        infix: (left, token, tokens) => {
+            return {
+                head: left, 
+                args: parseArgs(end, tokens), 
+                line: left.line
+            };
+        }
+    };
+}    
+
 let parselets = { 
     name: node('name'),
     number: node('number'), 
     string: node('string'),
-    '(': {
-        power: 5,
-        infix: (left, token, tokens) => {
-            let args = [];
-            while (true) {
-                let next = tokens[0];
-                if (!next) {
-                    throw 'expected: , or )';
-                } 
-                if ([',', ')'].indexOf(next.type) == -1) { 
-                    args.push(expression(tokens, 0));
-                    continue;
-                }
-                tokens.shift();
-                if (next.type == ')') {
-                    return {
-                        head: left, 
-                        args: args, 
-                        line: left.line
-                    };
-                }
-            }
-        }
-    },
+    '(': wrapper(')'), 
+    '[': wrapper(']'), 
+    '{': wrapper('}'), 
     ')': {},
     ',': {}
 };
@@ -58,8 +75,10 @@ function operator(head, power, infix) {
 operator('newline', 0, (left, token, tokens) => left);
 operator(':', 1);
 operator('=', 2);
+operator(':=', 2);
 operator(' ', 3);
 operator('-', 4);
+operator('+', 4);
 operator('.', 5);
  
 function expression(tokens, power=0) {
@@ -68,7 +87,7 @@ function expression(tokens, power=0) {
     if (!parselet) {
         throw token.line + ': could not parse "' + token.type + '"';
     }
-    let left = parselet.prefix && parselet.prefix(token);
+    let left = parselet.prefix && parselet.prefix(token, tokens);
     let next = parselets[tokens[0] && tokens[0].type];
     while (tokens.length > 0 && power < (next && next.power || 0)) {
         token = tokens.shift();
