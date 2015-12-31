@@ -10,27 +10,56 @@ function node(head) {
     }
 }
 
-function parseArgs(end, tokens) {
-    let args = [];
-    while (true) {
-        let next = tokens[0];
-        if (!next) {
-           throw 'expected: , or ' + end;
-        } 
-        if ([',', end].indexOf(next.type) == -1) { 
-            args.push(expression(tokens, 0));
-            continue;
+let parselets = { 
+    name: node('name'),
+    number: node('number'), 
+    string: node('string')
+};
+
+function terminator(op, power=1) {
+    parselets[op] = {
+        power: power,
+        infix: (left, token, tokens) => {
+            if (tokens.length == 0) {
+                 return left;
+            }
+            let right = expression(tokens, power);
+            if (left.head == token.head) { 
+                left.args = left.args.concat(right);
+                return left;
+            }
+            token.args = [left, right]
+            return token; 
         }
-        tokens.shift();
-        if (next.type == end) {
-            return args;
-        }
-    }     
+    };
 }
 
-function wrapper(end) {
-    return {
-        power: 5,
+function operator(op, power) {
+    parselets[op] = {
+        power: power,
+        infix: (left, token, tokens) => {
+            return {
+                head: op,
+                args: [left, expression(tokens, power)],
+                line: token.line
+            };
+        } 
+    };
+}
+
+function parseArgs(end, tokens) {
+    let args = expression(tokens);
+    let next = tokens[0];
+    if (!next || next.type != end) {
+       throw 'expected ' + end;
+    } 
+    tokens.shift();
+    return args;
+}
+
+function wrapper(start, end) {
+    parselets[start] =  {
+        power: 7,
         prefix: (token, tokens) => {
             return {
                 head: token.type, 
@@ -46,49 +75,23 @@ function wrapper(end) {
             };
         }
     };
+    parselets[end] = {};
 }    
 
-let parselets = { 
-    name: node('name'),
-    number: node('number'), 
-    string: node('string'),
-    '(': wrapper(')'), 
-    '[': wrapper(']'), 
-    '{': wrapper('}'), 
-    ')': {},
-    ',': {}
-};
-
-function operator(head, power, infix) {
-    parselets[head] = {
-        power: power,
-        infix: infix ? infix : (left, token, tokens) => {
-            return {
-                head: head,
-                args: [left, expression(tokens, power)],
-                line: token.line
-            };
-        } 
-    };
-}
-
-function terminator(left, token, tokens) {
-    if (tokens.length == 0) {
-        return left;
-    }
-    return [left, expression(tokens, 0.5)];
-}
-
-operator(';', 1, terminator);
-operator('newline', 1, terminator);
-operator(':', 2);
-operator('=', 3);
-operator(':=', 3);
-operator(' ', 4);
+terminator(',', 1);
+terminator('newline');
+terminator(';');
+operator(':', 3);
+operator('=', 4);
+operator(':=', 4);
+operator(' ', 5);
 operator('-', 5);
-operator('+', 5);
+operator('+', 6);
 operator('.', 6);
- 
+wrapper('(', ')');
+wrapper('[', ']');
+wrapper('{', '}');
+
 function expression(tokens, power=0) {
     let token = tokens.shift();
     let parselet = parselets[token.type];
