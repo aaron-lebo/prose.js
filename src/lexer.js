@@ -26,7 +26,7 @@ let tokenizers = {
     '{': match(/^{\s*/),
     '}': match(/^\s*}/),
     ',': match(/^\s*,\s*/),
-    semicolon: match(/;/),
+    ';': match(/^\s*;\s*/),
     ':': match(/^\s*:\s+/),
     operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
     newline: match(/^\s*\n\s*/),

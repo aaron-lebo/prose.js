@@ -72,14 +72,22 @@ function operator(head, power, infix) {
     };
 }
 
-operator('newline', 0, (left, token, tokens) => left);
-operator(':', 1);
-operator('=', 2);
-operator(':=', 2);
-operator(' ', 3);
-operator('-', 4);
-operator('+', 4);
-operator('.', 5);
+function terminator(left, token, tokens) {
+    if (tokens.length == 0) {
+        return left;
+    }
+    return [left, expression(tokens, 0.5)];
+}
+
+operator(';', 1, terminator);
+operator('newline', 1, terminator);
+operator(':', 2);
+operator('=', 3);
+operator(':=', 3);
+operator(' ', 4);
+operator('-', 5);
+operator('+', 5);
+operator('.', 6);
  
 function expression(tokens, power=0) {
     let token = tokens.shift();
