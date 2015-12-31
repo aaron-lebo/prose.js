@@ -1,15 +1,3 @@
-function alpha(chr) {
-    return chr >= 'a' && chr <= 'z' || chr >= 'A' && chr <= 'Z' ;
-}
-
-function numeric(chr) {
-    return chr >= '0' && chr <= '9';
-}
-
-function special(chr) {
-    return '~!@#$%^&*-_=+|/?'.includes(chr);
-}
-
 function match(re) {
     return str => {
         let match = re.exec(str);
@@ -17,7 +5,7 @@ function match(re) {
     };
 }
 
-function quotes(chrs) {
+function quotes(...chrs) {
     return str => {
         let chr = str[0],
             len = 1;
@@ -45,23 +33,9 @@ let tokenizers = {
     newline: match(/^\s*\n\s*/),
     ' ': match(/^\s+/),
     number: match(/^[0-9]+(\.[0-9]+)?/),
-    name: str => { 
-        let len = 0, 
-            chr = str[len];
-        if (alpha(chr) || special(chr)) {
-            len = 1;
-            chr = str[1];
-        } else {
-            return len
-        } 
-        while (alpha(chr) || numeric(chr) || special(chr)) {
-            len += 1;
-            chr = str[len];
-        }
-        return len;
-    },
-    regex: quotes(['`']),
-    string: quotes(['"', "'"])
+    name: match(/^[a-z~@\$%\^&\*\-_=\+|:<>\/\?+][a-z0-9~@\$%\^&\*\-_=\+|:<>\/\?]*/i),
+    regex: quotes('`'),
+    string: quotes('"', "'")
 };
 
 export default function lex(str) {
