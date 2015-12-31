@@ -33,7 +33,7 @@ let tokenizers = {
     newline: match(/^\s*\n\s*/),
     ' ': match(/^\s+/),
     number: match(/^[0-9]+(\.[0-9]+)?/),
-    name: match(/^[a-z~@\$%\^&\*\-_=\+|:<>\/\?+][a-z0-9~@\$%\^&\*\-_=\+|:<>\/\?]*/i),
+    name: match(/^[a-z~@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~@\$%\^&\*\-_=\+|:<>\/\?]*/i),
     regex: quotes('`'),
     string: quotes('"', "'")
 };
