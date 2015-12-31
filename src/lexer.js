@@ -41,18 +41,10 @@ let tokenizers = {
     ',': match(/^\s*,\s*/),
     ';': match(/^\s*;\s*/),
     ':': match(/^\s*:\s+/),
-    operator: match(/^\s+[~\!@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
+    operator: match(/^\s+[~@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
     newline: match(/^\s*\n\s*/),
     ' ': match(/^\s+/),
-    number: str => {
-        let len = 0,
-            chr = str[0]; 
-        while (chr >= '0' && chr <= '9') {
-            len += 1;
-            chr = str[len]; 
-        }
-        return len;
-    },
+    number: match(/^[0-9]+(\.[0-9]+)?/),
     name: str => { 
         let len = 0, 
             chr = str[len];
