@@ -3,3 +3,5 @@
   sum console.log
   sum
 )
+
+`^abc`.exec('abcd')

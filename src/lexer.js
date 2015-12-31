@@ -17,6 +17,19 @@ function match(re) {
     };
 }
 
+function quotes(chrs) {
+    return str => {
+        let chr = str[0],
+            len = 1;
+        if (chrs.indexOf(chr) == -1) {
+            return 0;
+        } 
+        while (str[len] != chr || str[len - 1] == '\\') {
+            len += 1;
+        }
+        return len + 1;
+    }
+}
 let tokenizers = {
     '.': match(/^\s*\.\s*/),
     '(': match(/^\(\s*/),
@@ -55,17 +68,8 @@ let tokenizers = {
         }
         return len;
     },
-    string: str => {
-        let chr = str[0],
-            len = 1;
-        if (['"', "'"].indexOf(chr) == -1) {
-            return 0;
-        } 
-        while (str[len] != chr || str[len - 1] == '\\') {
-            len += 1;
-        }
-        return len + 1;
-    }
+    regex: quotes(['`']),
+    string: quotes(['"', "'"])
 };
 
 export default function lex(str) {

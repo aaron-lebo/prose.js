@@ -13,6 +13,7 @@ function node(head) {
 let parselets = { 
     name: node('name'),
     number: node('number'), 
+    regex: node('regex'),
     string: node('string')
 };
 
