@@ -7,11 +7,11 @@ function match(re) {
 
 function quotes(...chrs) {
     return str => {
-        let chr = str[0],
-            len = 1;
+        let chr = str[0];
         if (chrs.indexOf(chr) == -1) {
             return 0;
         } 
+        let len = 1; 
         while (str[len] != chr || str[len - 1] == '\\') {
             len += 1;
         }
@@ -32,6 +32,7 @@ let tokenizers = {
     operator: match(/^\s+[~@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
     newline: match(/^\s*\n\s*/),
     ' ': match(/^\s+/),
+    quote: match(/^:/),
     number: match(/^[0-9]+(\.[0-9]+)?/),
     name: match(/^[a-z~@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~@\$%\^&\*\-_=\+|:<>\/\?]*/i),
     regex: quotes('`'),
@@ -39,9 +40,9 @@ let tokenizers = {
 };
 
 export default function lex(str) {
-    let len, 
-        line = 1, 
-        tokens = [];
+    let len; 
+    let line = 1; 
+    let tokens = [];
     while (str.length > 0) {
         for (let tokenizer in tokenizers) {
             len = tokenizers[tokenizer](str);

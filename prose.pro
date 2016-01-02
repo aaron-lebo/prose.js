@@ -1,11 +1,6 @@
-[1, 2, 3] map(x, 
+map(x, 
+  +(1, 2, 3)
   sum = x + x
   sum console.log
-  sum
+  :sum
 )
-
-`^abc`.exec('abcd')
-
-123.4
-
-<head>

@@ -17,20 +17,15 @@ let parselets = {
     string: node('string')
 };
 
-function terminator(op, power=1) {
+function terminator(op, power) {
     parselets[op] = {
         power: power,
         infix: (left, token, tokens) => {
-            if (tokens.length == 0) {
-                 return left;
-            }
-            let right = expression(tokens, power);
-            if (left.head == token.head) { 
-                left.args = left.args.concat(right);
+            if (!tokens[0]) {
                 return left;
             }
-            token.args = [left, right]
-            return token; 
+            let right = expression(tokens, power);
+            return Array.isArray(left) ? left.concat(right) : [left, right];
         }
     };
 }
@@ -79,9 +74,19 @@ function wrapper(start, end) {
     parselets[end] = {};
 }    
 
+parselets['quote'] =  {
+    prefix: (token, tokens) => {
+        return {
+            head: 'quote', 
+            args: [expression(tokens)], 
+            line: token.line
+        };
+    }
+}
+
 terminator(',', 1);
-terminator('newline');
-terminator(';');
+terminator('newline', 2);
+terminator(';', 2);
 operator(':', 3);
 operator('=', 4);
 operator(':=', 4);
@@ -110,6 +115,7 @@ function expression(tokens, power=0) {
 }
 
 export default function parse(tokens) {
+    console.log(tokens);
     let ast = [];
     while (tokens.length > 0) {
         let node = expression(tokens);
