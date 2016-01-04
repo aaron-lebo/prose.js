@@ -1,6 +1,12 @@
 import escodegen from 'escodegen';
 
 let nodes = {
+  'name': node => {
+      return {
+          type: 'Identifier',
+          name: node.args[0]
+      }
+  },
   'number': node => {
       return {
           type: 'Literal',
@@ -14,7 +20,14 @@ let nodes = {
           arguments: node.args.map(n => convert(n))
       }
   },
-  //' ': node => node,
+  ' ': node => {
+      let [left, right] = node.args;
+      return {
+          type: 'CallExpression',
+          callee: convert(right),
+          arguments: [convert(left)]
+      }
+  }
 }
 
 function convert(ast) {
