@@ -1,30 +1,30 @@
 let parselets = {};
 let tokens = [];
 
-function prefix(key, fn) {
-    parselets[key] = {prefix: fn};    
+function merge(key, obj) { 
+    parselets[key] = Object.assign(parselets[key] || {}, obj);    
 }
 
-function literal(key) {
-    prefix(key, token => node(key, [token.value], token.line));
+function prefix(key, fn) {
+    merge(key, {prefix: fn});    
 }
 
 function infix(key, power, fn) {
-    parselets[key] = Object.assign(parselets[key] || {}, {power: power, infix: fn});    
+    merge(key, {power: power, infix: fn});    
 }
 
 function node(head, args, line) {
-    return {
-        head: head, 
-        args: args, 
-        line: line
-    };
+    return {head: head, args: args, line: line};
 }
 
 function operator(op, power) {
     infix(op, power, (left, token) => {
         return node(op, [left, expression(power)], token.line);
     });
+}
+
+function literal(key) {
+    prefix(key, token => node(key, [token.value], token.line));
 }
 
 function getArgs(end) {
