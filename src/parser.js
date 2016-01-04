@@ -30,7 +30,7 @@ function getArgs(end) {
        throw 'expected ' + end;
     } 
     tokens.shift();
-    return args;
+    return Array.isArray(args) ? args : [args];
 }
 
 function wrapper(start, end) {
