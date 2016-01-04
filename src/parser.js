@@ -23,10 +23,6 @@ function operator(op, power) {
     });
 }
 
-function literal(key) {
-    prefix(key, token => node(key, [token.value], token.line));
-}
-
 function getArgs(end) {
     let args = expression();
     let next = tokens[0];
@@ -47,20 +43,20 @@ function wrapper(start, end) {
     parselets[end] = {};
 }    
 
+function literal(key) {
+    prefix(key, token => node(key, [token.value], token.line));
+}
+
 function terminator(op, power=1) {
     infix(op, power, (left, token) => {
         if (!tokens[0]) {
             return left;
         }
-        let right = expression(power);
-        return Array.isArray(left) ? left.concat(right) : [left, right];
+        return (Array.isArray(left) ? left : [left]).concat(expression(power));
     });
 }
 
-prefix('quote', token => {
-    return node('quote', [expression()], token.line);
-});
-
+prefix('quote', token => node('quote', [expression()], token.line));
 literal('name');
 literal('number'); 
 literal('regex');
@@ -85,24 +81,17 @@ function expression(power=0) {
     if (!parselet) {
         throw token.line + ': could not parse "' + token.type + '"';
     }
-    let left = parselet.prefix && parselet.prefix(token, tokens);
+    let left = parselet.prefix && parselet.prefix(token);
     let next = parselets[tokens[0] && tokens[0].type];
     while (tokens[0] && power < (next && next.power || 0)) {
         token = tokens.shift();
-        left = parselets[token.type].infix(left, token, tokens);
+        left = parselets[token.type].infix(left, token);
         next = parselets[tokens[0] && tokens[0].type];
     }
     return left;
 }
 
-export default function parse(ts) {
-    tokens = ts;
-    let ast = [];
-    while (tokens[0]) {
-        let node = expression();
-        if (node) {
-            ast.push(node);
-        }
-    }
-    return ast;
+export default function parse(_tokens) {
+    tokens = _tokens;
+    return expression(); 
 }
