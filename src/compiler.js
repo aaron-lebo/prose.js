@@ -13,20 +13,24 @@ let nodes = {
             value: parseFloat(node.args[0])
         }
     },
+    '(': node => {
+        return {
+            type: 'CallExpression',
+            callee: convert(node.node),
+            arguments: node.args.map(n => convert(n))
+        }
+    },
     '[': node => {
         return {
             type: 'CallExpression',
             callee: {type: 'Identifier', name: 'Immutable.Array'},
-          arguments: node.args.map(n => convert(n))
+            arguments: node.args.map(n => convert(n))
         }
     },
     ' ': node => {
         let [left, right] = node.args;
-        return {
-            type: 'CallExpression',
-            callee: convert(right),
-            arguments: [convert(left)]
-        }
+        right.args.splice(0, 0, left);
+        return convert(right);
     },
     '.': node => {
         let [left, right] = node.args;
@@ -40,7 +44,7 @@ let nodes = {
 }
 
 function convert(ast) {
-    return nodes[ast.node](ast);
+    return nodes[typeof(ast.node) == 'string' ? ast.node : '('](ast);
 }
 
 export default function compile(ast) {
