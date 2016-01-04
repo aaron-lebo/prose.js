@@ -14,7 +14,7 @@ function infix(key, power, fn) {
 }
 
 function node(head, args, line) {
-    return {head: head, args: args, line: line};
+    return {node: head, args: args, line: line};
 }
 
 function operator(op, power) {
@@ -41,7 +41,7 @@ function wrapper(start, end) {
     prefix(start, token => {
         return node(token.type, getArgs(end), token.line);
     });
-    infix(start, 0, (left, token) => {
+    infix(start, 7, (left, token) => {
         return node(left, getArgs(end), left.line);
     });
     parselets[end] = {};
