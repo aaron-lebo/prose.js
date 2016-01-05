@@ -55,6 +55,15 @@ let nodes = {
             }],
             kind: 'let'
         }
+    },
+    ':=': node => {
+        let [left, right] = node.args;
+        return {
+            type: 'AssignmentExpression',
+            operator: '=', 
+            left: convert(left), 
+            right: convert(right)
+        }
     }
 }
 
