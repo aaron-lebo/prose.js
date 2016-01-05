@@ -1,1 +1,4 @@
-[1, 2, 3] map(x, x) console.log()
+[1, 2, 3] map(x,
+  =(sum, x)
+  x
+) console.log

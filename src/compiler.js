@@ -43,11 +43,30 @@ let nodes = {
             property: convert(right),
             computed: false 
         }
+    },
+    '=': node => {
+        let [left, right] = node.args;
+        return {
+            type: 'VariableDeclaration',
+            declarations: [{
+                type: 'VariableDeclarator', 
+                id: convert(left), 
+                init: convert(right)
+            }],
+            kind: 'var'
+        }
     }
 }
 
 function convert(ast) {
-    return nodes[typeof(ast.node) == 'string' ? ast.node : '('](ast);
+    if (typeof(ast.node) == 'string') {
+        return nodes[ast.node](ast);
+    } 
+    let node = nodes[ast.node.args && ast.node.args[0]];
+    if (node) {
+        return node(ast); 
+    }
+    return nodes['('](ast);
 }
 
 export default function compile(ast) {
