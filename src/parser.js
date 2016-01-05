@@ -24,12 +24,16 @@ function operator(op, power) {
 }
 
 function getArgs(end) {
-    let args = expression();
     let next = tokens[0];
+    if (next && next.type == end) {
+        tokens.shift();
+        return [];
+    } 
+    let args = expression();
+    next = tokens.shift();
     if (!next || next.type != end) {
        throw 'expected ' + end;
     } 
-    tokens.shift();
     return Array.isArray(args) ? args : [args];
 }
 
@@ -70,10 +74,10 @@ operator(':=', 4);
 operator(' ', 5);
 operator('-', 5);
 operator('+', 6);
-operator('.', 6);
 wrapper('(', ')');
 wrapper('[', ']');
 wrapper('{', '}');
+operator('.', 8);
 
 function expression(power=0) {
     let token = tokens.shift();

@@ -29,7 +29,7 @@ let nodes = {
     },
     ' ': node => {
         let [left, right] = node.args;
-        if (right.node.node == 'name') {
+        if (['.', 'name'].indexOf(right.node.node) != -1) {
             right.args.splice(0, 0, left);
             return convert(right); 
         }
