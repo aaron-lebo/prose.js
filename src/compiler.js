@@ -53,7 +53,7 @@ let nodes = {
                 id: convert(left), 
                 init: convert(right)
             }],
-            kind: 'var'
+            kind: 'let'
         }
     }
 }
