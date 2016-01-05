@@ -29,8 +29,11 @@ let nodes = {
     },
     ' ': node => {
         let [left, right] = node.args;
-        right.args.splice(0, 0, left);
-        return convert(right);
+        if (right.node.node == 'name') {
+            right.args.splice(0, 0, left);
+            return convert(right); 
+        }
+        return convert({node: right, args: [left]});
     },
     '.': node => {
         let [left, right] = node.args;
