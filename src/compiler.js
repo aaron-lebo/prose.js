@@ -13,6 +13,17 @@ let nodes = {
             value: parseFloat(node.args[0])
         }
     },
+    'do': node => {
+        let body = node.args.slice(-1)[0];
+        return {
+            type: 'FunctionExpression',
+            params: node.args.slice(0, -1).map(convert),
+            body: {
+                type: 'BlockStatement', 
+                body: [convert(body)]
+            }
+        }
+    },
     '(': node => {
         return {
             type: 'CallExpression',
@@ -21,7 +32,7 @@ let nodes = {
                 if (Array.isArray(n)) { 
                     return {
                         type: 'SequenceExpression', 
-                        expressions: n.map($n => convert($n))
+                        expressions: n.map(convert)
                     };
                 } 
                 return convert(n);
@@ -72,14 +83,7 @@ let nodes = {
             left: convert(left), 
             right: convert(right)
         }
-    },
-    'do': node => {
-        return {
-            type: 'Identifier',
-            name: node.args[0]
-        }
-    },
- 
+    }
 }
 
 function convert(ast) {
