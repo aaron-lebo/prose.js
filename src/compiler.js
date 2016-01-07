@@ -24,6 +24,14 @@ let nodes = {
             }
         }
     },
+    '+': node => {
+        return {
+            type: 'BinaryExpression',
+            operator: '+',
+            left: convert(node.args[0]),
+            right: convert(node.args[1])
+        }
+    },
     '(': node => {
         return {
             type: 'CallExpression',

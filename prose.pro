@@ -1,1 +1,3 @@
-am = do(x, x)
+inc = do(x,  
+  x + x
+)
