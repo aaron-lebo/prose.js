@@ -17,7 +17,15 @@ let nodes = {
         return {
             type: 'CallExpression',
             callee: convert(node.node),
-            arguments: node.args.map(n => convert(n))
+            arguments: node.args.map(n => { 
+                if (Array.isArray(n)) { 
+                    return {
+                        type: 'SequenceExpression', 
+                        expressions: n.map($n => convert($n))
+                    };
+                } 
+                return convert(n);
+            }) 
         }
     },
     '[': node => {
@@ -64,7 +72,14 @@ let nodes = {
             left: convert(left), 
             right: convert(right)
         }
-    }
+    },
+    'do': node => {
+        return {
+            type: 'Identifier',
+            name: node.args[0]
+        }
+    },
+ 
 }
 
 function convert(ast) {

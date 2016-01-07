@@ -25,16 +25,21 @@ function operator(op, power) {
 
 function getArgs(end) {
     let next = tokens[0];
-    if (next && next.type == end) {
-        tokens.shift();
-        return [];
-    } 
-    let args = expression();
-    next = tokens.shift();
-    if (!next || next.type != end) {
-       throw 'expected ' + end;
-    } 
-    return Array.isArray(args) ? args : [args];
+    let arg = [];
+    let args = [];
+    while (next) {
+        if ([end, ','].indexOf(next.type) != -1) {
+            tokens.shift();
+            args.push(arg.length == 1 ? arg[0] : arg);
+            arg = [];
+            if (next.type == end) {
+                return args;
+            } 
+        } else {
+            arg.push(expression());
+        } 
+        next = tokens[0];
+    }
 }
 
 function wrapper(start, end) {
@@ -52,12 +57,7 @@ function literal(key) {
 }
 
 function terminator(op, power=1) {
-    infix(op, power, (left, token) => {
-        if (!tokens[0]) {
-            return left;
-        }
-        return (Array.isArray(left) ? left : [left]).concat(expression(power));
-    });
+    infix(op, power, (left, token) => left);
 }
 
 prefix('quote', token => node('quote', [expression()], token.line));
@@ -65,9 +65,8 @@ literal('name');
 literal('number'); 
 literal('regex');
 literal('string');
-terminator(',');
-terminator('newline', 2);
-terminator(';', 2);
+terminator('newline');
+terminator(';');
 operator(':', 3);
 operator('=', 4);
 operator(':=', 4);
