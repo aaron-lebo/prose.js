@@ -12,7 +12,13 @@ let nodes = {
             type: 'Literal',
             value: parseFloat(node.args[0])
         }
-    },
+    },       
+    'string': node => {
+        return {
+            type: 'Literal',
+            value: node.args[0]
+        }
+    },   
     'do': node => {
         let body = node.args.slice(-1)[0];
         return {
@@ -20,7 +26,7 @@ let nodes = {
             params: node.args.slice(0, -1).map(convert),
             body: {
                 type: 'BlockStatement', 
-                body: [convert(body)]
+                body: Array.isArray(body) ? body.map(convert) : [convert(body)]
             }
         }
     },
@@ -98,13 +104,25 @@ function convert(ast) {
     if (typeof(ast.node) == 'string') {
         return nodes[ast.node](ast);
     } 
-    let node = nodes[ast.node.args && ast.node.args[0]];
-    if (node) {
-        return node(ast); 
+    let args = ast.node.args;
+    let node = nodes[args && args[0]] || nodes['('];
+    return node(ast); 
+}
+
+function filter(nodes) {
+    return nodes.filter(n => n.node != '#');
+}
+
+function stripComments(ast) { 
+    if (Array.isArray(ast)) {
+        return filter(ast);
     }
-    return nodes['('](ast);
+    if (ast.args) {
+        ast.args = filter(ast.args).map(stripComments);
+    } 
+    return ast;
 }
 
 export default function compile(ast) {
-    return escodegen.generate(convert(ast));
+    return escodegen.generate(convert(stripComments(ast)));
 }

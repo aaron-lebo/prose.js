@@ -61,6 +61,7 @@ function terminator(op, power=1) {
 }
 
 prefix('quote', token => node('quote', [expression()], token.line));
+literal('#');
 literal('name');
 literal('number'); 
 literal('regex');
@@ -94,7 +95,7 @@ function expression(power=0) {
     return left;
 }
 
-export default function parse(_tokens) {
-    tokens = _tokens;
+export default function parse($tokens) {
+    tokens = $tokens;
     return expression(); 
 }
