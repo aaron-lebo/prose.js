@@ -65,7 +65,7 @@ literal('#');
 literal('name');
 literal('number'); 
 literal('regex');
-literal('string');
+prefix('string', t => node('string', [t.value.slice(1, -1)], t.line));
 terminator('newline');
 terminator(';');
 operator(':', 3);
