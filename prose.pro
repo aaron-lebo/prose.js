@@ -7,4 +7,4 @@ buffalo = do(end,
 buffalo('.')
 '?' buffalo
 buffalo! = buffalo('!')
-buffalo!()
+buffalo!
