@@ -1,6 +1,6 @@
 buffalo = do(end,
   1 to(9) map(i,
-    [1, 3, 7].contains(i) if('B', 'b') + 'uffalo'
+    if([1, 3, 7].contains(i), 'B', 'b') + 'uffalo'
   ).join(' ') + end
 )
 
