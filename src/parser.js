@@ -46,7 +46,7 @@ function wrapper(start, end) {
     prefix(start, token => {
         return node(token.type, getArgs(end), token.line);
     });
-    infix(start, 7, (left, token) => {
+    infix(start, 6, (left, token) => {
         return node(left, getArgs(end), left.line);
     });
     parselets[end] = {};
@@ -71,13 +71,13 @@ terminator(';');
 operator(':', 3);
 operator('=', 4);
 operator(':=', 4);
-operator(' ', 5);
 operator('-', 5);
-operator('+', 6);
+operator('+', 5);
+operator(' ', 5);
 wrapper('(', ')');
 wrapper('[', ']');
 wrapper('{', '}');
-operator('.', 8);
+operator('.', 7);
 
 function expression(power=0) {
     let token = tokens.shift();
