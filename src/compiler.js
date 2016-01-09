@@ -30,6 +30,15 @@ let nodes = {
             }
         }
     },
+    'if': node => {
+        let [a, b, c] = node.args;
+        return {
+            type: 'ConditionalExpression',
+            test: convert(a),
+            consequent: convert(b),
+            alternate: convert(c)
+        }
+    },
     '+': node => {
         return {
             type: 'BinaryExpression',
