@@ -71,6 +71,7 @@ terminator(';');
 operator(':', 3);
 operator('=', 4);
 operator(':=', 4);
+operator('->', 4);
 operator('-', 5);
 operator('+', 5);
 operator(' ', 5);

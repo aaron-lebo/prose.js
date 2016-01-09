@@ -46,7 +46,19 @@ let nodes = {
             left: convert(node.args[0]),
             right: convert(node.args[1])
         }
+    },    
+    '->': node => {
+        let body = node.args[1];
+        return {
+            type: 'FunctionExpression',
+            params: [convert(node.args[0])],
+            body: {
+                type: 'BlockStatement', 
+                body: Array.isArray(body) ? body.map(convert) : [convert(body)]
+            }
+        }
     },
+ 
     '(': node => {
         return {
             type: 'CallExpression',

@@ -1,7 +1,7 @@
 buffalo = do(end,
-  to(1, 8).map(do(i, 
+  to(1, 8).map(i ->  
     [1, 3, 7].contains(i) if('B', 'b') + 'uffalo'
-  )).join(' ') + end
+  ).join(' ') + end
 )
 
 buffalo('.')
