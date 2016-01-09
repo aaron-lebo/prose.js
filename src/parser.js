@@ -97,5 +97,9 @@ function expression(power=0) {
 
 export default function parse($tokens) {
     tokens = $tokens;
-    return expression(); 
+    let ast = [];
+    while (tokens[0]) {
+        ast.push(expression()); 
+    }
+    return ast;
 }

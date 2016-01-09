@@ -66,7 +66,7 @@ let nodes = {
         return {
             type: 'CallExpression',
             callee: {type: 'Identifier', name: 'Immutable.Array'},
-            arguments: node.args.map(n => convert(n))
+            arguments: node.args.map(convert)
         }
     },
     ' ': node => {
@@ -133,5 +133,9 @@ function stripComments(ast) {
 }
 
 export default function compile(ast) {
-    return escodegen.generate(convert(stripComments(ast)));
+    let $ast = stripComments(ast);
+    return escodegen.generate({
+        type: 'Program',
+        body: Array.isArray($ast) ? $ast.map(convert) : [convert(Rast)] 
+    });
 }
