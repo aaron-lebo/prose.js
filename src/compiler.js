@@ -62,9 +62,13 @@ let nodes = {
     },
     ' ': node => {
         let [left, right] = node.args;
-        if (['.', 'name'].indexOf(right.node.node) != -1) {
-            right.args.splice(0, 0, left);
-            return convert(right); 
+        switch (right.node.node) {
+            case '.':
+                right.node.args[0].args.splice(0, 0, left);
+                return convert(right);
+            case 'name': 
+                right.args.splice(0, 0, left);
+                return convert(right); 
         }
         return convert({node: right, args: [left]});
     },
