@@ -16,7 +16,7 @@ let nodes = {
     'string': node => {
         return {
             type: 'Literal',
-            value: node.args[0]
+            value: node.args[0].slice(1, -1)
         }
     },   
     'do': node => {
