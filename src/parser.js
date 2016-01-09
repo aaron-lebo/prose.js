@@ -74,10 +74,10 @@ operator(':=', 4);
 operator('-', 5);
 operator('+', 5);
 operator(' ', 5);
+operator('.', 6);
 wrapper('(', ')');
 wrapper('[', ']');
 wrapper('{', '}');
-operator('.', 7);
 
 function expression(power=0) {
     let token = tokens.shift();

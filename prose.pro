@@ -1,1 +1,3 @@
-1 to(9) map(i, i).join(' ') + end
+to(1, 8).map(
+  do(i, i)
+) console.log
