@@ -47,6 +47,9 @@ function wrapper(start, end) {
         return node(token.type, getArgs(end), token.line);
     });
     infix(start, 6, (left, token) => {
+        if (token.type == '[') {
+            return node('at', [left].concat(getArgs(end)), left.line);
+        }
         return node(left, getArgs(end), left.line);
     });
     parselets[end] = {};
@@ -62,6 +65,7 @@ function terminator(op, power=1) {
 
 prefix('quote', token => node('quote', [expression()], token.line));
 literal('#');
+literal('boolean');
 literal('name');
 literal('number'); 
 literal('regex');

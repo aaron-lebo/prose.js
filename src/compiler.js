@@ -1,6 +1,12 @@
 import escodegen from 'escodegen';
 
 let nodes = {
+    'boolean': n => {
+        return {
+            type: 'Literal',
+            value: null 
+        };
+    },
     'name': node => {
         return {
             type: 'Identifier',
@@ -30,39 +36,49 @@ let nodes = {
             }
         }
     },
-    'if': node => {
-        let [a, b, c] = node.args;
+    'if': n => {
+        let [a, b, c] = n.args.map(convert);
         return {
             type: 'ConditionalExpression',
-            test: convert(a),
-            consequent: convert(b),
-            alternate: convert(c)
+            test: a,
+            consequent: b,
+            alternate: c
         }
-    },    
+    },      
+    'at': n => {
+        let [left, right] = n.args.map(convert);
+        return {
+            type: 'MemberExpression',
+            object: left,
+            property: right,
+            computed: true 
+        }
+    },
     'import': node => {
         return {
             type: 'VariableDeclaration',
             declarations: node.args.map(n => {
-                let [left, right] = n.args;
+                let [left, right] = n.args.map(convert);
                 return { 
                     type: 'VariableDeclarator', 
-                    id: convert(left), 
+                    id: left, 
                     init: {
                         type: 'CallExpression',
                         callee: {type: 'Identifier', name: 'require'},
-                        arguments: [convert(right)]
+                        arguments: [right]
                     }
                 }; 
             }),
             kind: 'let'
         };       
     },
-    '+': node => {
+    '+': n => {
+        let [left, right] = n.args.map(convert);
         return {
             type: 'BinaryExpression',
             operator: '+',
-            left: convert(node.args[0]),
-            right: convert(node.args[1])
+            left: left,
+            right: right
         }
     },    
     '->': node => {
@@ -106,12 +122,12 @@ let nodes = {
         right.args.splice(0, 0, left);
         return convert(right);
     },
-    '.': node => {
-        let [left, right] = node.args;
+    '.': n => {
+        let [left, right] = n.args.map(convert);
         return {
             type: 'MemberExpression',
-            object: convert(left),
-            property: convert(right),
+            object: left,
+            property: right,
             computed: false 
         }
     },

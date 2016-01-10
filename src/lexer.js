@@ -36,6 +36,7 @@ let tokenizers = {
     ' ': match(/^\s+/),
     quote: match(/^:/),
     number: match(/^[0-9]+(\.[0-9]+)?/),
+    boolean: match(/^nil/), 
     name: str => {
         let $match = match(/^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*/i)(str);
         return str[$match - 1] == ':' ? $match - 1 : $match; 
