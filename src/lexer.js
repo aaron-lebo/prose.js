@@ -18,6 +18,7 @@ function quotes(quote) {
         return len + 1;
     }
 }
+
 let tokenizers = {
     '.': match(/^\s*\.\s*/),
     '(': match(/^\(\s*/),
@@ -35,7 +36,10 @@ let tokenizers = {
     ' ': match(/^\s+/),
     quote: match(/^:/),
     number: match(/^[0-9]+(\.[0-9]+)?/),
-    name: match(/^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*/i),
+    name: str => {
+        let $match = match(/^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*/i)(str);
+        return str[$match - 1] == ':' ? $match - 1 : $match; 
+    },
     regex: quotes('`'),
     string: quotes( "'"),
     doubled: quotes('"')

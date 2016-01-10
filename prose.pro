@@ -1,9 +1,16 @@
-buffalo = do(end,
-  to(1, 8).map(i ->  
-    [1, 3, 7].contains(i) if('B', 'b') + 'uffalo'
-  ).join(' ') + end
+#! /usr/bin/env node
+
+import(
+    fs: 'fs',
+    parseArgs: 'minimist',
+    lex: './lexer',
+    parse: './parser',
+    compile: './compiler'
 )
 
-buffalo('.')
-'?' buffalo
-buffalo! = buffalo('!')
+args = process.argv.slice(2) parseArgs
+ast = fs.readFileSync(args['_'][0]).toString() lex parse
+args.n if( 
+    ast JSON.stringify(nil, 1),
+    ast compile
+) console.log

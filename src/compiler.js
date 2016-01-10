@@ -38,6 +38,20 @@ let nodes = {
             consequent: convert(b),
             alternate: convert(c)
         }
+    },    
+    'import': node => {
+        return {
+            type: 'VariableDeclaration',
+            declarations: node.args.map(n => {
+                let [left, right] = n.args;
+                return { 
+                    type: 'VariableDeclarator', 
+                    id: convert(left), 
+                    init: convert(right)
+                }; 
+            }),
+            kind: 'let'
+        };       
     },
     '+': node => {
         return {
@@ -58,7 +72,6 @@ let nodes = {
             }
         }
     },
- 
     '(': node => {
         return {
             type: 'CallExpression',
