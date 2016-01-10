@@ -62,7 +62,7 @@ lex = do(str,
                     value: val 
                 })
                 line += (val.match(`\n`) || []).length
-                str = str.substring(len)
+                str := str.substring(len)
                 break()
             ) 
             if(len == 0,
