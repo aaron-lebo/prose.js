@@ -47,7 +47,11 @@ let nodes = {
                 return { 
                     type: 'VariableDeclarator', 
                     id: convert(left), 
-                    init: convert(right)
+                    init: {
+                        type: 'CallExpression',
+                        callee: {type: 'Identifier', name: 'require'},
+                        arguments: [convert(right)]
+                    }
                 }; 
             }),
             kind: 'let'
