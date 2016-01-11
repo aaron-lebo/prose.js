@@ -8,9 +8,8 @@ match = do(re,
 quotes = do(quote,
     str do(
         chr = str @ 0
-        chr != quote ?(
+        chr != quote ?
             return(0)
-        )
         len = 1
         for(str @ len != chr || str @ len - 1 == '\\',
             len += 1
@@ -50,9 +49,8 @@ lex = do(str,
     len = nil; line = 1; tokens = []
     for(str @ 0,
         res = tokenizers.entries().reduce(do(len, t, len ?([len, t @ 0], str t @ 1)), 0)
-        res == 0 ?(
+        res == 0 ?
             throw(str.substring(0))
-        )
         len := res @ 0; type = res @ 1
         val = str.substring(0, len)               
         tokens.push({
