@@ -50,24 +50,24 @@ lex = do(str,
     len = nil
     line = 1
     tokens = []
-    for(str[0],
-        tokenizers.forEach(t do(
-            len := str tokenizers[t]
-            if(len > 0,
-                val = str.substring(0, len)               
-                tokens.push({
-                    type: if(type == 'operator', val.replace(`\s`g, ''), t),
-                    len: len,
-                    line: line,
-                    value: val 
-                })
-                line += (val.match(`\n`) || []).length
-                str := str.substring(len)
-                break()
-            ) 
-            if(len == 0,
-                throw(0 str.substring)
-            )
-        ))
-    )
+    Repeat(tokenizers).map(t do(
+        len := str tokenizers[t]
+        if(len > 0,
+            val = str.substring(0, len)               
+            tokens.push({
+                type: if(type == 'operator', val.replace(`\s`g, ''), t),
+                len: len,
+                line: line,
+                value: val 
+            })
+            line += (val.match(`\n`) || []).length
+            str := str.substring(len)
+            break()
+        ) 
+        if(len == 0,
+            throw(0 str.substring)
+        )
+    ))
 )
+
+module.exports = lex
