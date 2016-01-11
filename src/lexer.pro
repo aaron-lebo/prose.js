@@ -1,17 +1,17 @@
 match = do(re,
-    str do(
-        $match = str re.exec
+    str -> (
+        $match = re.exec(str)
         $match ?($match[0].length, 0) 
     )
 )
 
 quotes = do(quote,
-    str do(
+    str -> (
         chr = str @ 0
         chr != quote ?
             return(0)
         len = 1
-        for(str @ len != chr || str[len - 1] == '\\',
+        for(str @ len != chr || str @ len - 1 == '\\',
             len += 1
         )
         len + 1
@@ -36,9 +36,9 @@ tokenizers = OrderedMap(
     quote: `^:` match,
     number: `^[0-9]+(\.[0-9]+)?` match,
     boolean: `^nil` match, 
-    name: str do( 
+    name: str  -> ( 
         $match = `^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*`i match(str)
-        str[$match - 1] == ':' ?($match - 1, $match) 
+        str @ $match - 1 == ':' ?($match - 1, $match) 
     ),
     regex: '`' quotes,
     string: '\'' quotes,
@@ -48,7 +48,9 @@ tokenizers = OrderedMap(
 default: lex = do(str,
     len = nil; line = 1; tokens = []
     for(str @ 0,
-        res = tokenizers.entries().reduce(do(len, t, len ?([len, t @ 0], str t @ 1)), 0)
+        res = tokenizers.entries().reduce(do(len, t, 
+          len ?([len, t @ 0], str t @ 1)
+        ), 0)
         res == 0 ?
             throw(str.substring(0))
         len := res @ 0; type = res @ 1
