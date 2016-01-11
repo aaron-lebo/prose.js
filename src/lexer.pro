@@ -11,7 +11,7 @@ quotes = do(quote,
         chr != quote ?
             return(0)
         len = 1
-        for(str @ len != chr || str @ len - 1 == '\\',
+        for(str @ len != chr || str[len - 1] == '\\',
             len += 1
         )
         len + 1
@@ -38,14 +38,14 @@ tokenizers = OrderedMap(
     boolean: `^nil` match, 
     name: str do( 
         $match = `^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*`i match(str)
-        str @ $match - 1 == ':' ?($match - 1, $match) 
+        str[$match - 1] == ':' ?($match - 1, $match) 
     ),
     regex: '`' quotes,
     string: '\'' quotes,
     doubled: '"' quotes
 )
 
-lex = do(str,
+default: lex = do(str,
     len = nil; line = 1; tokens = []
     for(str @ 0,
         res = tokenizers.entries().reduce(do(len, t, len ?([len, t @ 0], str t @ 1)), 0)
@@ -63,5 +63,3 @@ lex = do(str,
         str := str.substring(len)
     ) 
 )
-
-module.exports = lex
