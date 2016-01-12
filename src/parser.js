@@ -33,6 +33,7 @@ function getArgs(end) {
             args.push(arg.length == 1 ? arg[0] : arg);
             arg = [];
             if (next.type == end) {
+                console.log(args);
                 return args;
             } 
         } else {
@@ -77,7 +78,7 @@ operator('=', 4);
 operator(':=', 4);
 operator('+=', 4);
 operator('->', 4.5);
-operator('||', 4.8);
+operator('|', 4.8);
 operator('?', 4.9);
 operator('==', 4.99);
 operator('!=', 4.99);

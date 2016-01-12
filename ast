@@ -1,0 +1,188 @@
+[
+ {
+  "node": "=",
+  "args": [
+   {
+    "node": "name",
+    "args": [
+     "match"
+    ],
+    "line": 1
+   },
+   {
+    "node": {
+     "node": "name",
+     "args": [
+      "do"
+     ],
+     "line": 1
+    },
+    "args": [
+     {
+      "node": "name",
+      "args": [
+       "re"
+      ],
+      "line": 1
+     },
+     {
+      "node": "->",
+      "args": [
+       {
+        "node": "name",
+        "args": [
+         "str"
+        ],
+        "line": 2
+       },
+       {
+        "node": "(",
+        "args": [
+         [
+          {
+           "node": "=",
+           "args": [
+            {
+             "node": "name",
+             "args": [
+              "$match"
+             ],
+             "line": 3
+            },
+            {
+             "node": {
+              "node": ".",
+              "args": [
+               {
+                "node": "name",
+                "args": [
+                 "re"
+                ],
+                "line": 3
+               },
+               {
+                "node": "name",
+                "args": [
+                 "exec"
+                ],
+                "line": 3
+               }
+              ],
+              "line": 3
+             },
+             "args": [
+              {
+               "node": "name",
+               "args": [
+                "str"
+               ],
+               "line": 3
+              }
+             ],
+             "line": 3
+            }
+           ],
+           "line": 3
+          },
+          {
+           "node": " ",
+           "args": [
+            {
+             "node": "name",
+             "args": [
+              "$match"
+             ],
+             "line": 4
+            },
+            {
+             "node": {
+              "node": "name",
+              "args": [
+               "?"
+              ],
+              "line": 4
+             },
+             "args": [
+              {
+               "node": ".",
+               "args": [
+                {
+                 "node": "at",
+                 "args": [
+                  {
+                   "node": "name",
+                   "args": [
+                    "$match"
+                   ],
+                   "line": 4
+                  },
+                  {
+                   "node": "number",
+                   "args": [
+                    "0"
+                   ],
+                   "line": 4
+                  }
+                 ],
+                 "line": 4
+                },
+                {
+                 "node": "name",
+                 "args": [
+                  "length"
+                 ],
+                 "line": 4
+                }
+               ],
+               "line": 4
+              },
+              {
+               "node": "number",
+               "args": [
+                "0"
+               ],
+               "line": 4
+              }
+             ],
+             "line": 4
+            }
+           ],
+           "line": 4
+          }
+         ]
+        ],
+        "line": 2
+       }
+      ],
+      "line": 2
+     }
+    ],
+    "line": 1
+   }
+  ],
+  "line": 1
+ },
+ {
+  "node": "=",
+  "args": [
+   {
+    "node": "name",
+    "args": [
+     "quotes"
+    ],
+    "line": 7
+   },
+   {
+    "node": {
+     "node": "name",
+     "args": [
+      "do"
+     ],
+     "line": 7
+    },
+    "line": 7
+   }
+  ],
+  "line": 7
+ }
+]

@@ -12,7 +12,10 @@ function quotes(quote) {
             return 0;
         } 
         let len = 1; 
-        while (str[len] != chr || str[len - 1] == '\\') {
+        while (str[len] != chr) {
+            if(str[len] == '\\') {
+                len += 1;
+            }
             len += 1;
         }
         return len + 1;

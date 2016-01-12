@@ -92,18 +92,28 @@ let nodes = {
             }
         }
     },
-    '(': node => {
+    '(': n => {
+        if (n.node == '(') {
+            let args = n.args[0];
+            if (Array.isArray(args)) { 
+                return {
+                    type: 'SequenceExpression', 
+                    expressions: args.map(convert)
+                };
+            } 
+            return convert(args);
+        }
         return {
             type: 'CallExpression',
-            callee: convert(node.node),
-            arguments: node.args.map(n => { 
-                if (Array.isArray(n)) { 
+            callee: convert(n.node),
+            arguments: n.args.map($n => { 
+                if (Array.isArray($n)) { 
                     return {
                         type: 'SequenceExpression', 
-                        expressions: n.map(convert)
+                        expressions: $n.map(convert)
                     };
                 } 
-                return convert(n);
+                return convert($n);
             }) 
         }
     },
