@@ -11,7 +11,9 @@ quotes = do(quote,
         chr != quote ?
             return(0)
         len = 1
-        for(str @ len != chr | str @ len - 1 == '\\\\',
+        for(str @ len != chr, 
+            str @ len == '\\' ?
+                len += 1
             len += 1
         )
         len + 1
