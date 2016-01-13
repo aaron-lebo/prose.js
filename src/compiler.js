@@ -45,6 +45,7 @@ let nodes = {
             alternate: c
         }
     },      
+    '?': n => nodes.if(n),
     'at': n => {
         let [left, right] = n.args.map(convert);
         return {
@@ -54,6 +55,7 @@ let nodes = {
             computed: true 
         }
     },
+    '@': n => nodes.at(n),
     'import': node => {
         return {
             type: 'VariableDeclaration',
@@ -76,11 +78,16 @@ let nodes = {
         let [left, right] = n.args.map(convert);
         return {
             type: 'BinaryExpression',
-            operator: '+',
+            operator: n.node,
             left: left,
             right: right
         }
     },    
+    '==': n => {
+        n.node = '===';
+        return nodes['+'](n);
+    }, 
+    '!=': n => nodes['+'](n), 
     '->': node => {
         let body = node.args[1];
         return {
@@ -153,18 +160,20 @@ let nodes = {
             kind: 'let'
         }
     },
-    ':=': node => {
-        let [left, right] = node.args;
+    ':=': n => {
+        let [left, right] = n.args.map(convert);
         return {
             type: 'AssignmentExpression',
-            operator: '=', 
-            left: convert(left), 
-            right: convert(right)
+            operator: n.node, 
+            left: left, 
+            right: right
         }
-    }
+    },
+    '+=': n => nodes[':='](n)
 }
 
 function convert(ast) {
+    console.log(ast);
     if (typeof(ast.node) == 'string') {
         return nodes[ast.node](ast);
     } 
