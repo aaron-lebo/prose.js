@@ -30,10 +30,11 @@ function getArgs(end) {
     while (next) {
         if ([end, ','].indexOf(next.type) != -1) {
             tokens.shift();
-            args.push(arg.length == 1 ? arg[0] : arg);
-            arg = [];
+            if (arg.length != 0) {
+                args.push(arg.length == 1 ? arg[0] : arg);
+                arg = [];
+            }
             if (next.type == end) {
-                console.log(args);
                 return args;
             } 
         } else {
@@ -64,12 +65,12 @@ function terminator(op, power=1) {
     infix(op, power, (left, token) => left);
 }
 
-prefix('quote', token => node('quote', [expression()], token.line));
+prefix('quote', t => node('quote', [expression()], t.line));
 literal('#');
 literal('boolean');
 literal('name');
 literal('number'); 
-literal('regex');
+prefix('regex', t => node('regex', [t.value.slice(1, -1)], t.line));
 prefix('string', t => node('string', [t.value.slice(1, -1)], t.line));
 terminator('newline');
 terminator(';');

@@ -23,6 +23,7 @@ function quotes(quote) {
 }
 
 let tokenizers = {
+    '#': match(/^#.*[^\n]/),
     '.': match(/^\s*\.\s*/),
     '(': match(/^\(\s*/),
     ')': match(/^\s*\)/),
@@ -33,7 +34,6 @@ let tokenizers = {
     ',': match(/^\s*,\s*/),
     ';': match(/^\s*;\s*/),
     ':': match(/^\s*:\s+/),
-    '#': match(/^#.*[^\n]/),
     operator: match(/^\s+[~!@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
     newline: match(/^\s*\n\s*/),
     ' ': match(/^\s+/),

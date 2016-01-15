@@ -1,51 +1,58 @@
 import escodegen from 'escodegen';
 
+function literal(val) {
+    return {
+        type: 'Literal',
+        value: val 
+    };
+}
+ 
+
 let nodes = {
-    'boolean': n => {
-        return {
-            type: 'Literal',
-            value: null 
-        };
-    },
-    'name': node => {
+    'boolean': n => literal(null), 
+    'name': n => {
         return {
             type: 'Identifier',
-            name: node.args[0]
+            name: n.args[0]
         }
     },
-    'number': node => {
-        return {
-            type: 'Literal',
-            value: parseFloat(node.args[0])
-        }
-    },       
-    'string': node => {
-        return {
-            type: 'Literal',
-            value: node.args[0]
-        }
-    },   
-    'do': node => {
-        let body = node.args.slice(-1)[0];
+    'number': n => literal(parseFloat(n.args[0])),
+    'string': n => literal(n.args[0]),
+    'regex': n => literal(RegExp(n.args[0])),
+    'do': n => {
+        let body = n.args.slice(-1)[0];
         return {
             type: 'FunctionExpression',
-            params: node.args.slice(0, -1).map(convert),
+            params: n.args.slice(0, -1).map(convert),
             body: {
                 type: 'BlockStatement', 
                 body: Array.isArray(body) ? body.map(convert) : [convert(body)]
             }
-        }
+        };
     },
     'if': n => {
         let [a, b, c] = n.args.map(convert);
-        return {
+        let exp = {
             type: 'ConditionalExpression',
             test: a,
             consequent: b,
-            alternate: c
+            alternate: c || literal(null)
         }
+        if (a.type == 'VariableDeclaration') {
+            return literal(null);
+        }
+        return exp;  
     },      
-    '?': n => nodes.if(n),
+    '?': n => nodes.if(n),    
+    '|': n => {
+        let [left, right] = n.args.map(convert);
+        return {
+            type: 'LogicalExpression',
+            operator: n.node,
+            left: left,
+            right: right
+        }
+    },    
     'at': n => {
         let [left, right] = n.args.map(convert);
         return {
@@ -83,16 +90,17 @@ let nodes = {
             right: right
         }
     },    
+    '-': n => nodes['+'](n), 
     '==': n => {
         n.node = '===';
         return nodes['+'](n);
     }, 
     '!=': n => nodes['+'](n), 
-    '->': node => {
-        let body = node.args[1];
+    '->': n => {
+        let body = n.args[1];
         return {
             type: 'FunctionExpression',
-            params: [convert(node.args[0])],
+            params: [convert(n.args[0])],
             body: {
                 type: 'BlockStatement', 
                 body: Array.isArray(body) ? body.map(convert) : [convert(body)]
@@ -120,19 +128,42 @@ let nodes = {
                         expressions: $n.map(convert)
                     };
                 } 
+                if ($n.node == ':') {
+                    $n.node = ':=';
+                    return nodes[':=']($n);
+                }
                 return convert($n);
             }) 
         }
     },
-    '[': node => {
+    '[': n => {
         return {
             type: 'CallExpression',
             callee: {type: 'Identifier', name: 'Immutable.Array'},
-            arguments: node.args.map(convert)
+            arguments: n.args.map(convert)
+        }
+    },    
+    '{': n => {
+        return {
+            type: 'CallExpression',
+            callee: {type: 'Identifier', name: 'Immutable.HashMap'},
+            arguments: n.args.map($n => { 
+                if (Array.isArray($n)) { 
+                    return {
+                        type: 'SequenceExpression', 
+                        expressions: $n.map(convert)
+                    };
+                } 
+                if ($n.node == ':') {
+                    $n.node = '=';
+                    return nodes['=']($n);
+                }
+                return convert($n);
+            }) 
         }
     },
-    ' ': node => {
-        let [left, right] = node.args;
+    ' ': n => {
+        let [left, right] = n.args;
         if (['.', 'name'].indexOf(right.node.node) == -1) {
             return convert({node: right, args: [left]});
         }
@@ -148,20 +179,21 @@ let nodes = {
             computed: false 
         }
     },
-    '=': node => {
-        let [left, right] = node.args;
+    '=': n => {
+        let [left, right] = n.args.map(convert);
         return {
             type: 'VariableDeclaration',
             declarations: [{
                 type: 'VariableDeclarator', 
-                id: convert(left), 
-                init: convert(right)
+                id: left, 
+                init: right
             }],
             kind: 'let'
         }
     },
     ':=': n => {
         let [left, right] = n.args.map(convert);
+        n.node = '=';
         return {
             type: 'AssignmentExpression',
             operator: n.node, 
@@ -169,11 +201,20 @@ let nodes = {
             right: right
         }
     },
-    '+=': n => nodes[':='](n)
+    '+=': n => nodes[':='](n),
+    ':': n => {
+        let [left, right] = n.args.map(convert);
+        left.node = 'exports.' + left.node;
+        return {
+            type: 'AssignmentExpression',
+            operator: '=', 
+            left:  left,
+            right: right
+        }
+    },
 }
 
 function convert(ast) {
-    console.log(ast);
     if (typeof(ast.node) == 'string') {
         return nodes[ast.node](ast);
     } 
@@ -182,24 +223,25 @@ function convert(ast) {
     return node(ast); 
 }
 
-function filter(nodes) {
-    return nodes.filter(n => n.node != '#');
-}
-
 function stripComments(ast) { 
-    if (Array.isArray(ast)) {
-        return filter(ast);
+    let $ast = []
+    for (let node of ast) {
+        if (Array.isArray(node)) {
+            node = stripComments(node); 
+        }
+        if (node.args) {
+            node.args = stripComments(node.args);
+        } 
+        if (node.node != '#') {
+            $ast.push(node);
+        }
     }
-    if (ast.args) {
-        ast.args = filter(ast.args).map(stripComments);
-    } 
-    return ast;
+    return $ast;
 }
 
 export default function compile(ast) {
-    let $ast = stripComments(ast);
     return escodegen.generate({
         type: 'Program',
-        body: Array.isArray($ast) ? $ast.map(convert) : [convert(Rast)] 
+        body: stripComments(ast).map(convert) 
     });
 }
