@@ -7,7 +7,8 @@ match = do(re,
 
 quotes = do(quote,
     str -> (
-        (chr = str @ 0) != quote ? return(0)
+        (chr = str @ 0) != quote ? 
+            return(0)
         len = 1
         for(str @ len != chr,
             str @ len == '\\' ? len += 1

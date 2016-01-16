@@ -39,7 +39,13 @@ let nodes = {
             }
         };
     },    
-    '->': n => nodes.do(n),    
+    '->': n => nodes.do(n),
+    'return': n => {
+        return {
+            type: 'ReturnStatement',
+            argument: convert(n.args[0]) 
+        };
+    },
     'if': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
