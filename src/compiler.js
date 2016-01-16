@@ -59,7 +59,19 @@ let nodes = {
         }
         return exp;  
     },      
-    '?': n => nodes.if(n),    
+    '?': n => nodes.if(n),            
+    'for': n => {
+        let body = n.args.slice(-1)[0];
+        body = Array.isArray(body) ? body.map(convert) : [convert(body)];
+        return {
+            type: 'WhileStatement',
+            body: {
+                type: 'BlockStatement', 
+                body: body
+            },
+            test: convert(n.args[0])
+        };
+    },    
     '|': n => {
         let [left, right] = n.args.map(convert);
         return {
