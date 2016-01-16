@@ -97,7 +97,7 @@ let nodes = {
     }, 
     '!=': n => nodes['+'](n), 
     '->': n => {
-        let body = n.args[1];
+        let body = n.args[1].args[0];
         return {
             type: 'FunctionExpression',
             params: [convert(n.args[0])],
@@ -111,8 +111,8 @@ let nodes = {
         if (n.node == '(') {
             let args = n.args[0];
             if (Array.isArray(args)) { 
-                return {
-                    type: 'SequenceExpression', 
+                return { 
+                    type: 'SequenceExpression',
                     expressions: args.map(convert)
                 };
             } 
