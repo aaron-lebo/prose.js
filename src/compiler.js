@@ -21,15 +21,25 @@ let nodes = {
     'regex': n => literal(RegExp(n.args[0])),
     'do': n => {
         let body = n.args.slice(-1)[0];
+        if (body.node == 'object') {
+            body = body.args[0].map(convert);
+        } else {
+            body = Array.isArray(body) ? body.map(convert) : [convert(body)];
+        }
+        body[body.length - 1] = {
+            type: 'ReturnStatement',
+            argument: body[body.length - 1]
+        }
         return {
             type: 'FunctionExpression',
             params: n.args.slice(0, -1).map(convert),
             body: {
                 type: 'BlockStatement', 
-                body: Array.isArray(body) ? body.map(convert) : [convert(body)]
+                body: body
             }
         };
-    },
+    },    
+    '->': n => nodes.do(n),    
     'if': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
@@ -96,28 +106,17 @@ let nodes = {
         return nodes['+'](n);
     }, 
     '!=': n => nodes['+'](n), 
-    '->': n => {
-        let body = n.args[1].args[0];
-        return {
-            type: 'FunctionExpression',
-            params: [convert(n.args[0])],
-            body: {
-                type: 'BlockStatement', 
-                body: Array.isArray(body) ? body.map(convert) : [convert(body)]
-            }
+    'object': n => {
+        let args = n.args;
+        if (args.length == 1) { 
+            return Array.isArray(args[0]) ? args[0] : convert(args[0]);
         }
+        return { 
+            type: 'SequenceExpression',
+            expressions: args.map(convert)
+        };
     },
     '(': n => {
-        if (n.node == '(') {
-            let args = n.args[0];
-            if (Array.isArray(args)) { 
-                return { 
-                    type: 'SequenceExpression',
-                    expressions: args.map(convert)
-                };
-            } 
-            return convert(args);
-        }
         return {
             type: 'CallExpression',
             callee: convert(n.node),

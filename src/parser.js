@@ -45,16 +45,8 @@ function getArgs(end) {
 }
 
 function wrapper(start, end) {
-    prefix(start, token => {
-        return node(token.type, getArgs(end), token.line);
-    });
-    infix(start, 6, (left, token) => {
-        if (token.type == '[') {
-            return node('at', [left].concat(getArgs(end)), left.line);
-        }
-        return node(left, getArgs(end), left.line);
-    });
-    parselets[end] = {};
+    prefix(start, t => node(t.type, getArgs(end), t.line));
+    infix(start, 6, (l, t) => node(l, getArgs(end), l.line));
 }    
 
 function literal(key) {
@@ -89,7 +81,9 @@ operator('+', 5);
 operator(' ', 5);
 operator('.', 6);
 wrapper('(', ')');
-wrapper('[', ']');
+prefix('(', t => node('object', getArgs(')'), t.line));
+wrapper('[', ']');    
+infix('[', 6, (l, t) => node('at', [l].concat(getArgs(']')), l.line));
 wrapper('{', '}');
 
 function expression(power=0) {
