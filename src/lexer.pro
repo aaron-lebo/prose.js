@@ -38,7 +38,7 @@ tokenizers = [
     quote: `^:` match,
     number: `^[0-9]+(\.[0-9]+)?` match,
     boolean: `^nil` match, 
-    name: str  -> ( 
+    name: str -> ( 
         $match = `^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*`i match(str)
         str @ $match - 1 == ':' ?($match - 1, $match) 
     ),

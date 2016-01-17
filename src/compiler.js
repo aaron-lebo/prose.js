@@ -123,7 +123,10 @@ let nodes = {
         n.node = '===';
         return nodes['+'](n);
     }, 
-    '!=': n => nodes['+'](n), 
+    '!=': n => { 
+        n.node = '!==';
+        return nodes['+'](n);
+    },
     'object': n => {
         let args = n.args;
         if (args.length == 1) { 
@@ -238,18 +241,19 @@ let nodes = {
             operator: n.node, 
             left: left, 
             right: right
-        }
+        };
     },
     '+=': n => nodes[':='](n),
     ':': n => {
-        let [left, right] = n.args.map(convert);
-        left.node = 'exports.' + left.node;
+        let [left, right] = n.args[1].args;
+        left.args[0] = 'exports.' + left.args[0];
         return {
             type: 'AssignmentExpression',
             operator: '=', 
-            left:  left,
-            right: right
+            left: convert(left), 
+            right: convert(right)
         }
+ 
     },
 }
 
