@@ -17,9 +17,9 @@ function node(head, args, line) {
     return {node: head, args: args, line: line};
 }
 
-function operator(op, power) {
+function operator(op, power, right=false) {
     infix(op, power, (left, token) => {
-        return node(op, [left, expression(power)], token.line);
+        return node(op, [left, expression(right ? power - 1 : power)], token.line);
     });
 }
 
@@ -67,9 +67,9 @@ prefix('string', t => node('string', [t.value.slice(1, -1)], t.line));
 terminator('newline');
 terminator(';');
 operator(':', 3);
-operator('=', 4);
-operator(':=', 4);
-operator('+=', 4);
+operator('=', 4, true);
+operator(':=', 4, true);
+operator('+=', 4, true);
 operator('->', 4.5);
 operator('|', 4.8);
 operator('?', 4.9);
