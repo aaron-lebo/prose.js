@@ -45,7 +45,14 @@ let nodes = {
             type: 'ReturnStatement',
             argument: convert(n.args[0]) 
         };
+    },    
+    'throw': n => {
+        return {
+            type: 'ThrowStatement',
+            argument: convert(n.args[0]) 
+        };
     },
+ 
     'if': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
@@ -163,6 +170,27 @@ let nodes = {
             arguments: n.args.map(convert)
         }
     },      
+    'HashMap': n => {
+        return {
+            type: 'CallExpression',
+            callee: {
+                type: 'Identifier', 
+                name: 'Immutable.HashMap'
+            },
+            arguments: [{
+                type: 'ObjectExpression', 
+                properties: n.args.map($n => {
+                    let args = $n.args.map(convert);
+                    return {
+                        type: 'Property',
+                        key: args[0],
+                        value: args[1],
+                        kind: 'init'
+                    };
+                })
+            }]
+        }
+    },    
     'OrderedMap': n => {
         return {
             type: 'CallExpression',
@@ -184,7 +212,6 @@ let nodes = {
             }]
         }
     },    
-   
     '{': n => {
         return {
             type: 'CallExpression',

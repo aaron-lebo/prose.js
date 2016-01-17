@@ -90,7 +90,14 @@ prefix('[', t => {
     return node('OrderedMap', args, t.line);
 });
 infix('[', 6, (l, t) => node('at', [l].concat(getArgs(']')), l.line));
-wrapper('{', '}');
+prefix('{', t => {
+    let args = getArgs('}');
+    if (!args[0] || args.filter(n => n.node != ':')[0]) {
+        return node('List', args, t.line);
+    }
+    return node('HashMap', args, t.line);
+});
+infix('{', 6, (l, t) => node('set', [l].concat(getArgs('}')), l.line));
 
 function expression(power=0) {
     let token = tokens.shift();
