@@ -139,9 +139,17 @@ let nodes = {
         if (args.length == 1) { 
             return Array.isArray(args[0]) ? args[0] : convert(args[0]);
         }
-        return { 
-            type: 'SequenceExpression',
-            expressions: args.map(convert)
+        return {
+            type: 'ObjectExpression', 
+            properties: n.args.map($n => {
+                let args = $n.args.map(convert);
+                return {
+                    type: 'Property',
+                    key: args[0],
+                    value: args[1],
+                    kind: 'init'
+                };
+            })
         };
     },
     '(': n => {

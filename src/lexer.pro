@@ -7,7 +7,7 @@ match = do(re,
 
 quotes = do(quote,
     str -> (
-        (chr = str @ 0) != quote ? 
+        chr = str @ 0 != quote ? 
             return(0)
         len = 1
         for(str @ len != chr,
@@ -47,7 +47,7 @@ tokenizers = [
 ]
 
 default: lex = do(str,
-    len = nil; line = 1; tokens = []
+    len = nil; line = 1; tokens = Array() 
     for(str @ 0,
         res = tokenizers.entries().reduce(do(len, t, 
           len ?([len, t @ 0], t[1](str))
@@ -56,13 +56,13 @@ default: lex = do(str,
             throw(str.substring(0))
         len := res @ 0; type = res @ 1
         val = str.substring(0, len)               
-        tokens.push({
+        tokens.push((
             type: type == 'operator' ?(val.replace(`\s`g, ''), type),
             len: len,
             line: line,
             value: val 
-        })
-        line += (val.match(`\n`) | []).length
+        ))
+        m = val.match(`\n`) ?(m.length, 0)
         str := str.substring(len)
     ) 
 )
