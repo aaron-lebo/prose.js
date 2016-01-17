@@ -153,13 +153,35 @@ let nodes = {
             }) 
         }
     },
-    '[': n => {
+    'List': n => {
         return {
             type: 'CallExpression',
-            callee: {type: 'Identifier', name: 'Immutable.Array'},
+            callee: {type: 'Identifier', name: 'Immutable.List'},
             arguments: n.args.map(convert)
         }
+    },      
+    'OrderedMap': n => {
+        return {
+            type: 'CallExpression',
+            callee: {
+                type: 'Identifier', 
+                name: 'Immutable.OrderedMap'
+            },
+            arguments: [{
+                type: 'ObjectExpression', 
+                properties: n.args.map($n => {
+                    let args = $n.args.map(convert);
+                    return {
+                        type: 'Property',
+                        key: args[0],
+                        value: args[1],
+                        kind: 'init'
+                    };
+                })
+            }]
+        }
     },    
+   
     '{': n => {
         return {
             type: 'CallExpression',

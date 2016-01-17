@@ -82,7 +82,13 @@ operator(' ', 5);
 operator('.', 6);
 wrapper('(', ')');
 prefix('(', t => node('object', getArgs(')'), t.line));
-wrapper('[', ']');    
+prefix('[', t => {
+    let args = getArgs(']');
+    if (!args[0] || args.filter(n => n.node != ':')[0]) {
+        return node('List', args, t.line);
+    }
+    return node('OrderedMap', args, t.line);
+});
 infix('[', 6, (l, t) => node('at', [l].concat(getArgs(']')), l.line));
 wrapper('{', '}');
 

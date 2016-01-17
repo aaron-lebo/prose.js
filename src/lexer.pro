@@ -20,7 +20,7 @@ quotes = do(quote,
     )
 )
 
-tokenizers = OrderedMap(
+tokenizers = [ 
     '.': `^\s*\.\s*` match,
     '(': `^\(\s*` match,
     ')': `^\s*\)` match,
@@ -45,7 +45,7 @@ tokenizers = OrderedMap(
     regex: '`' quotes,
     string: '\'' quotes,
     doubled: '"' quotes
-)
+]
 
 default: lex = do(str,
     len = nil; line = 1; tokens = []
