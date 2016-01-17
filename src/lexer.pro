@@ -13,7 +13,6 @@ quotes = do(quote,
         for(str @ len != chr,
             str @ len == '\\' ? 
                 len += 1
-            len = len == '\\' ? 1 
             len += 1
         )
         len + 1
@@ -51,7 +50,7 @@ default: lex = do(str,
     len = nil; line = 1; tokens = []
     for(str @ 0,
         res = tokenizers.entries().reduce(do(len, t, 
-          len ?([len, t @ 0], str t @ 1)
+          len ?([len, t @ 0], t[1](str))
         ), 0)
         res == 0 ?
             throw(str.substring(0))
