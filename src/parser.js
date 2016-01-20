@@ -80,8 +80,17 @@ operator('-', 5);
 operator('+', 5);
 operator(' ', 5);
 operator('.', 6);
-wrapper('(', ')');
-prefix('(', t => node('object', getArgs(')'), t.line));
+prefix('(', t => {
+    let args = getArgs(')');
+    if (args.filter(n => n.node != ':')[0]) {
+        if (args.length == 1) {
+            return args[0];
+        }
+        return node('List', args, t.line);
+    }
+    return node('object', args, t.line);
+});
+infix('(', 6, (l, t) => node(l, [l].concat(getArgs(')')), l.line));
 prefix('[', t => {
     let args = getArgs(']');
     if (!args[0] || args.filter(n => n.node != ':')[0]) {

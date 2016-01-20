@@ -127,9 +127,15 @@ let nodes = {
     },    
     '-': n => nodes['+'](n), 
     '==': n => {
-        n.node = '===';
-        return nodes['+'](n);
-    }, 
+        let [left, right] = n.args.map(convert);
+        return {
+            type: 'BinaryExpression',
+            operator: '===',
+            left: left,
+            right: right
+        }
+    },    
+ 
     '!=': n => { 
         n.node = '!==';
         return nodes['+'](n);
@@ -137,16 +143,17 @@ let nodes = {
     'object': n => {
         let args = n.args;
         if (args.length == 1) { 
-            return Array.isArray(args[0]) ? args[0] : convert(args[0]);
+            let arg = args[0];
+            return Array.isArray(arg) ? arg : convert(arg);
         }
         return {
             type: 'ObjectExpression', 
-            properties: n.args.map($n => {
-                let args = $n.args.map(convert);
+            properties: args.map($n => {
+                let [left, right] = $n.args.map(convert);
                 return {
                     type: 'Property',
-                    key: args[0],
-                    value: args[1],
+                    key: left,
+                    value: right,
                     kind: 'init'
                 };
             })
@@ -293,6 +300,7 @@ let nodes = {
 }
 
 function convert(ast) {
+    console.log(ast);
     if (typeof(ast.node) == 'string') {
         return nodes[ast.node](ast);
     } 
