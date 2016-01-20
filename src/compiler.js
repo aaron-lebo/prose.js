@@ -300,7 +300,6 @@ let nodes = {
 }
 
 function convert(ast) {
-    console.log(ast);
     if (typeof(ast.node) == 'string') {
         return nodes[ast.node](ast);
     } 

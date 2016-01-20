@@ -90,7 +90,7 @@ prefix('(', t => {
     }
     return node('object', args, t.line);
 });
-infix('(', 6, (l, t) => node(l, [l].concat(getArgs(')')), l.line));
+infix('(', 6, (l, t) => node(l, [].concat(getArgs(')')), l.line));
 prefix('[', t => {
     let args = getArgs(']');
     if (!args[0] || args.filter(n => n.node != ':')[0]) {
