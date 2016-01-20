@@ -18,7 +18,8 @@ function quotes(quote) {
             }
             len += 1;
         }
-        return len + 1;
+        len += 1;
+        return len + tokenizers.name(str.slice(len));
     }
 }
 

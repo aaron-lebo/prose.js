@@ -22,7 +22,7 @@ let nodes = {
     'do': n => {
         let body = n.args.slice(-1)[0];
         if (body.node == 'object') {
-            body = body.args[0].map(convert);
+            body = body.args.map(convert);
         } else {
             body = Array.isArray(body) ? body.map(convert) : [convert(body)];
         }
@@ -38,8 +38,23 @@ let nodes = {
                 body: body
             }
         };
+    },   
+    '->': n => {
+        let [param, body] = n.args;
+        body = Array.isArray(body) ? body.map(convert) : [convert(body)];
+        body[body.length - 1] = {
+            type: 'ReturnStatement',
+            argument: body[body.length - 1]
+        }
+        return {
+            type: 'FunctionExpression',
+            params: [convert(param)],
+            body: {
+                type: 'BlockStatement', 
+                body: body
+            }
+        };
     },    
-    '->': n => nodes.do(n),
     'return': n => {
         return {
             type: 'ReturnStatement',
@@ -52,7 +67,6 @@ let nodes = {
             argument: convert(n.args[0]) 
         };
     },
- 
     'if': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
@@ -60,9 +74,6 @@ let nodes = {
             test: a,
             consequent: b,
             alternate: c || literal(null)
-        }
-        if (a.type == 'VariableDeclaration') {
-            return literal(null);
         }
         return exp;  
     },      

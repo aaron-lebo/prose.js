@@ -1,5 +1,5 @@
 match = do(re,
-    str -> m = re.match(str) ?($m.length, 0) 
+    str -> (_ = re.match(str)) ?(_.length, 0) 
 )
 
 quotes = do(quote,
@@ -35,7 +35,7 @@ tokenizers = [
     number: `^[0-9]+(\.[0-9]+)?` match,
     boolean: `^nil` match, 
     name: str -> ( 
-        $match = `^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*`i match(str)
+        $match = match(`^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*`i)(str)
         str[$match - 1] == ':' ?($match - 1, $match) 
     ),
     regex: '`' quotes,
@@ -59,7 +59,7 @@ default: lex = do(str,
             line: line,
             value: val 
         ))
-        (m = val.match(`\n`)) ?(m.length, 0)
+        (_ = val.match(`\n`)) ?(_.length, 0)
         str := str.substring(len)
     ) 
 )
