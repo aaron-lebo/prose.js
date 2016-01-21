@@ -7,7 +7,19 @@ function literal(val) {
     };
 }
  
-
+function lift(body) { 
+    let $body = [];
+    body.forEach((n, i) => {
+        let decs = n.test && n.test.declarations;
+        if (decs) {
+            $body.splice(i, 0, n.test)
+            n.test = decs[0].id;
+        }
+        $body.push(n);
+    });
+    return $body;
+}
+ 
 let nodes = {
     'boolean': n => literal(null), 
     'name': n => {
@@ -26,6 +38,7 @@ let nodes = {
         } else {
             body = Array.isArray(body) ? body.map(convert) : [convert(body)];
         }
+        body = lift(body);
         body[body.length - 1] = {
             type: 'ReturnStatement',
             argument: body[body.length - 1]
@@ -42,14 +55,7 @@ let nodes = {
     '->': n => {
         let [param, body] = n.args;
         body = Array.isArray(body) ? body.map(convert) : [convert(body)];
-        body.forEach(($n, i) => {
-            let decs = $n.test && $n.test.declarations;
-            if (decs) {
-                body.splice(i, 0, $n.test)
-                $n.test = decs[0].id;
-            }
-            return $n; 
-        })
+        body = lift(body);
         body[body.length - 1] = {
             type: 'ReturnStatement',
             argument: body[body.length - 1]
