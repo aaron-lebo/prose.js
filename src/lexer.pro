@@ -47,7 +47,7 @@ default: lex = do(str,
     len = nil; line = 1; tokens = () 
     for(str @ 0,
         res = tokenizers.entries().reduce(do(len, t, 
-          len ?((len, t @ 0), t[1](str))
+            len ?((len, t @ 0), t[1](str))
         ), 0)
         res == 0 ?
             throw(str.substring(0))
