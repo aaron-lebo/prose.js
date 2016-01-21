@@ -42,6 +42,14 @@ let nodes = {
     '->': n => {
         let [param, body] = n.args;
         body = Array.isArray(body) ? body.map(convert) : [convert(body)];
+        body.forEach(($n, i) => {
+            let decs = $n.test && $n.test.declarations;
+            if (decs) {
+                body.splice(i, 0, $n.test)
+                $n.test = decs[0].id;
+            }
+            return $n; 
+        })
         body[body.length - 1] = {
             type: 'ReturnStatement',
             argument: body[body.length - 1]
@@ -338,6 +346,6 @@ function stripComments(ast) {
 export default function compile(ast) {
     return escodegen.generate({
         type: 'Program',
-        body: stripComments(ast).map(convert) 
+        body: stripComments(ast).map(convert)     
     });
 }
