@@ -20,7 +20,7 @@ let nodes = {
         return {
             type: 'Literal', 
             raw: { 
-                content: "'" + n.args[0] + "'",
+                content: n.args[0],
                 precedence: escodegen.Precedence.Primary
             }
         }
