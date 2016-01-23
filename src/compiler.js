@@ -16,7 +16,15 @@ let nodes = {
         }
     },
     'number': n => literal(parseFloat(n.args[0])),
-    'string': n => literal(n.args[0]),
+    'string': n => {
+        return {
+            type: 'Literal', 
+            raw: { 
+                content: "'" + n.args[0] + "'",
+                precedence: escodegen.Precedence.Primary
+            }
+        }
+    },
     'regex': n => literal(RegExp.apply(null, n.args)),
     'do': n => {
         let body = n.args.slice(-1)[0];
@@ -408,9 +416,8 @@ function liftStatements(ast, block=false) {
 }
 
 export default function compile(ast) {
-    console.log(ast);
     return escodegen.generate({
         type: 'Program',
         body: liftStatements(stripComments(ast), true)[0].map(convert)     
-    });
+    }, {verbatim: 'raw'});
 }
