@@ -17,7 +17,7 @@ let nodes = {
     },
     'number': n => literal(parseFloat(n.args[0])),
     'string': n => literal(n.args[0]),
-    'regex': n => literal(RegExp(n.args[0])),
+    'regex': n => literal(RegExp.apply(null, n.args)),
     'do': n => {
         let body = n.args.slice(-1)[0];
         if (body.node == 'object') {

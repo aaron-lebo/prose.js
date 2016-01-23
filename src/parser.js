@@ -64,7 +64,7 @@ literal('#');
 literal('boolean');
 literal('name');
 literal('number'); 
-prefix('regex', t => node('regex', [t.value.slice(1, -1)], t.line));
+prefix('regex', t => node('regex', t.value.split('`').slice(1), t.line));
 prefix('string', t => node('string', [t.value.slice(1, -1)], t.line));
 operator(':', 3, true);
 operator('?', 3.5);
