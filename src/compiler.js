@@ -202,11 +202,10 @@ let nodes = {
             }) 
         }
     },
-    'List': n => {
+    'Array': n => {
         return {
-            type: 'CallExpression',
-            callee: {type: 'Identifier', name: 'Immutable.List'},
-            arguments: n.args.map(convert)
+            type: 'ArrayExpression',
+            elements: n.args.map(convert)
         }
     },      
     'HashMap': n => {

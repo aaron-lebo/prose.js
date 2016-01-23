@@ -86,7 +86,7 @@ prefix('(', t => {
         if (args.length == 1) {
             return args[0];
         }
-        return node('List', args, t.line);
+        return node('Array', args, t.line);
     }
     return node('object', args, t.line);
 });
