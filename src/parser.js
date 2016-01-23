@@ -28,7 +28,11 @@ function getArgs(end) {
     let arg = [];
     let args = [];
     while (next) {
-        if ([end, ','].indexOf(next.type) != -1) {
+        if ([';', 'newline'].indexOf(next.type) != -1) {
+            tokens.shift();
+        } else if ([end, ','].indexOf(next.type) == -1) {
+            arg.push(expression());
+        } else { 
             tokens.shift();
             if (arg.length != 0) {
                 args.push(arg.length == 1 ? arg[0] : arg);
@@ -37,8 +41,6 @@ function getArgs(end) {
             if (next.type == end) {
                 return args;
             } 
-        } else {
-            arg.push(expression());
         } 
         next = tokens[0];
     }
@@ -64,8 +66,6 @@ literal('name');
 literal('number'); 
 prefix('regex', t => node('regex', [t.value.slice(1, -1)], t.line));
 prefix('string', t => node('string', [t.value.slice(1, -1)], t.line));
-terminator('newline');
-terminator(';');
 operator(':', 3, true);
 operator('?', 3.5);
 operator('=', 4, true);
@@ -73,9 +73,9 @@ operator(':=', 4, true);
 operator('+=', 4, true);
 operator('->', 4.5);
 operator('|', 4.8);
-operator('==', 4.99);
-operator('!=', 4.99);
-operator('@', 4.999);
+operator('==', 5);
+operator('!=', 5);
+operator('@', 5);
 operator('-', 5);
 operator('+', 5);
 operator(' ', 5);
@@ -128,7 +128,11 @@ export default function parse($tokens) {
     tokens = $tokens;
     let ast = [];
     while (tokens[0]) {
-        ast.push(expression()); 
+        if ([';', 'newline'].indexOf(tokens[0].type) == -1) {
+            ast.push(expression()); 
+        } else {
+            tokens.shift();
+        }
     }
     return ast;
 }

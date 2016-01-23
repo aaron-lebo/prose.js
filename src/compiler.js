@@ -65,8 +65,19 @@ let nodes = {
             type: 'ThrowStatement',
             argument: convert(n.args[0]) 
         };
-    },
+    },    
     'if': n => {
+        let [a, b, c] = n.args.map(convert);
+        let exp = {
+            type: 'IfStatement',
+            test: a,
+            consequent: b,
+            alternate: c || null
+        }
+        return exp;  
+    },      
+ 
+    '?': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
             type: 'ConditionalExpression',
@@ -76,7 +87,6 @@ let nodes = {
         }
         return exp;  
     },      
-    '?': n => nodes.if(n),            
     'for': n => {
         let body = n.args.slice(-1)[0];
         body = Array.isArray(body) ? body.map(convert) : [convert(body)];
@@ -365,10 +375,16 @@ function liftStatements(ast, block=false) {
             res = liftStatements(Array.isArray(arg) ? arg : [arg], true); 
             node.args[1] = res[0];
             statements = statements.concat(res[1]);
+        } else if (node.node == '?') {
+            res = liftStatements(node.args.slice(1), true); 
+            if (res[1][0]) {
+                node.node = 'if';
+            }
+            res = liftStatements(node.args.slice(0, 1)); 
+            statements = statements.concat(res[1]);
         } else if (node.node && node.node.args && node.node.args[0] == 'for') {
             res = liftStatements(node.args[1], true); 
             node.args[1] = res[0];
-            statements = statements.concat(res[1]);
         } else if (node.args) {
             res = liftStatements(node.args); 
             node.args = res[0];
@@ -377,6 +393,12 @@ function liftStatements(ast, block=false) {
         if (!block && node.node == '=') {
             statements.push(node);
             node = node.args[0];
+        } else if (node.node == '+=') {
+            statements.push(node);
+        } else if (node.node && node.node.args && node.node.args[0] == 'throw') {
+            statements.push(node);
+        } else if (node.node && node.node.args && node.node.args[0] == 'return') {
+            statements.push(node);
         } else if (block) {
             $ast = $ast.concat(statements);
             statements = [];
@@ -386,8 +408,8 @@ function liftStatements(ast, block=false) {
     return [$ast, statements];
 }
 
-
 export default function compile(ast) {
+    console.log(ast);
     return escodegen.generate({
         type: 'Program',
         body: liftStatements(stripComments(ast), true)[0].map(convert)     
