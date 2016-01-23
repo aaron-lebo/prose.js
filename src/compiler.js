@@ -145,11 +145,15 @@ let nodes = {
             right: right
         }
     },    
- 
     '!=': n => { 
-        n.node = '!==';
-        return nodes['+'](n);
-    },
+        let [left, right] = n.args.map(convert);
+        return {
+            type: 'BinaryExpression',
+            operator: '!==',
+            left: left,
+            right: right
+        }
+    },    
     'object': n => {
         let args = n.args;
         if (args.length == 1) { 
@@ -304,7 +308,7 @@ let nodes = {
             right: right
         };
     },
-    ':': n => {
+    'default': n => {
         let [left, right] = n.args[1].args;
         left.args[0] = 'exports.' + left.args[0];
         return {
@@ -342,31 +346,50 @@ function stripComments(ast) {
     return $ast;
 }
 
-function liftStatements(ast) { 
+function liftStatements(ast, block=false) { 
     let $ast = [];
+    let statements = [];
+    let res;
     for (let node of ast) {
         if (Array.isArray(node)) {
-            node = liftStatements(node); 
+            res = liftStatements(node, block); 
+            node = res[0];
+            statements = statements.concat(res[1]);
+        } else if (block && node.node == ':') {
+            node.node = 'default';
+            res = liftStatements(node.args[1].args[1].args, block); 
+            node.args[1].args[1].args = res[0];
+            statements = statements.concat(res[1]);
+        } else if (node.node == '->') { 
+            let arg = node.args[1];
+            res = liftStatements(Array.isArray(arg) ? arg : [arg], true); 
+            node.args[1] = res[0];
+            statements = statements.concat(res[1]);
+        } else if (node.node && node.node.args && node.node.args[0] == 'for') {
+            res = liftStatements(node.args[1], true); 
+            node.args[1] = res[0];
+            statements = statements.concat(res[1]);
+        } else if (node.args) {
+            res = liftStatements(node.args); 
+            node.args = res[0];
+            statements = statements.concat(res[1]);
+        }        
+        if (!block && node.node == '=') {
+            statements.push(node);
+            node = node.args[0];
+        } else if (block) {
+            $ast = $ast.concat(statements);
+            statements = [];
         }
-        if (node.args) {
-            if (node.node == '->') {
-                let body = node.args[1];
-                if (!Array.isArray(body)) {
-                    node.args[1] = body.args.map(n => {
-                        return n;
-                    });
-                }
-            }
-            node.args = liftStatements(node.args);
-        } 
         $ast.push(node);
-    }
-    return $ast;
+    } 
+    return [$ast, statements];
 }
+
 
 export default function compile(ast) {
     return escodegen.generate({
         type: 'Program',
-        body: liftStatements(stripComments(ast)).map(convert)     
+        body: liftStatements(stripComments(ast), true)[0].map(convert)     
     });
 }

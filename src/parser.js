@@ -66,7 +66,7 @@ prefix('regex', t => node('regex', [t.value.slice(1, -1)], t.line));
 prefix('string', t => node('string', [t.value.slice(1, -1)], t.line));
 terminator('newline');
 terminator(';');
-operator(':', 3);
+operator(':', 3, true);
 operator('?', 3.5);
 operator('=', 4, true);
 operator(':=', 4, true);
