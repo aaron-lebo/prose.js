@@ -1,5 +1,5 @@
 match = do(re,
-    str -> (_ = re.match(str)) ?(_.length, 0) 
+    str -> (_ = str.match(re)) ?(_.length, 0) 
 )
 
 quotes = do(quote,
@@ -46,10 +46,10 @@ tokenizers = [
 default: lex = do(str,
     len = nil; line = 1; tokens = () 
     for(str @ 0,
-        res = tokenizers.entries().reduce(do(len, t, 
-            len ?((len, t @ 0), t[1](str))
-        ), 0)
-        res == 0 ?
+        res = tokenizers.entrySeq().reduce(do(match, t, 
+            match ?(match, (t[0], t[1](str)))
+        )) 
+        res == nil ? 
             throw(str.substring(0))
         len := res @ 0; type = res @ 1
         val = str.substring(0, len)               

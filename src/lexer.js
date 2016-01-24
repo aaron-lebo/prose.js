@@ -1,25 +1,29 @@
-import Immutable from 'immutable';
-let match = function (re) {
-    return function (str) {
-        let _ = re.match(str);
-        return _ ? _.length : 0;
+function match(re) {
+    return str => {
+        let $match = re.exec(str);
+        return $match ? $match[0].length : 0;
     };
-};
-let quotes = function (quote) {
-    return function (str) {
+}
+
+function quotes(quote) {
+    return str => {
         let chr = str[0];
-        if (chr !== quote)
+        if (chr != quote) {
             return 0;
-        let len = 1;
-        while (str[len] !== chr) {
-            if (str[len] === '\\')
-                len += 1
-            (len += 1)
+        } 
+        let len = 1; 
+        while (str[len] != chr) {
+            if(str[len] == '\\') {
+                len += 1;
+            }
+            len += 1;
         }
-        return len + 1 + tokenizers.name(str.slice(len));
-    };
-};
-let tokenizers = Immutable.OrderedMap({
+        len += 1;
+        return len + tokenizers.name(str.slice(len));
+    }
+}
+
+let tokenizers = {
     '#': match(/^#.*[^\n]/),
     '.': match(/^\s*\.\s*/),
     '(': match(/^\(\s*/),
@@ -36,42 +40,39 @@ let tokenizers = Immutable.OrderedMap({
     ' ': match(/^\s+/),
     quote: match(/^:/),
     number: match(/^[0-9]+(\.[0-9]+)?/),
-    boolean: match(/^nil/),
-    name: function (str) {
+    boolean: match(/^nil/), 
+    name: str => {
         let $match = match(/^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*/i)(str);
-        return str[$match - 1] === ':' ? $match - 1 : $match;
+        return str[$match - 1] == ':' ? $match - 1 : $match; 
     },
     regex: quotes('`'),
-    string: quotes('\''),
+    string: quotes( "'"),
     doubled: quotes('"')
-});
-export default function lex() {
-    return function (str) {
-        let len = null;
-        let line = 1;
-        let tokens = {};
-        while (str[0]) {
-            let res = tokenizers.entries().reduce(function (len, t) {
-                return len ? [
-                    len,
-                    t[0]
-                ] : t[1](str);
-            }, 0);
-            if (res === 0)
-                throw str.substring(0);
-            len = res[0]
-            let type = res[1];
-            let val = str.substring(0, len);
-            (tokens.push({
-                type: type === 'operator' ? val.replace(/\s/g, '') : type,
-                len: len,
-                line: line,
-                value: val
-            }))
-            let _ = val.match(/\n/);
-            _ ? _.length : 0
-            (str = (str.substring(len)))
+};
+
+export default function lex(str) {
+    let len;
+    let line = 1; 
+    let tokens = [];
+    while (str[0]) {
+        for (let type in tokenizers) {
+            len = tokenizers[type](str);
+            if (len > 0) {
+                let value = str.substring(0, len);
+                tokens.push({
+                    type: type == 'operator' ? value.replace(/\s/g, '') : type,
+                    len: len,
+                    line: line,
+                    value: value 
+                });
+                line += (value.match(/\n/) || []).length;
+                str = str.substring(len);
+                break;
+            }
         }
-        return tokens;
-    };
+        if (len == 0) { 
+            throw str.substring(0);
+        }
+    }
+    return tokens;
 }

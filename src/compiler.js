@@ -79,12 +79,11 @@ let nodes = {
         let exp = {
             type: 'IfStatement',
             test: a,
-            consequent: b,
-            alternate: c || null
+            consequent: {type: 'BlockStatement', body: [b]},
+            alternate: c && {type: 'BlockStatement', body: [c]}
         }
         return exp;  
     },      
- 
     '?': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
@@ -327,7 +326,7 @@ let nodes = {
     },
     'default': n => {
         let args = n.args[1].args;
-        let body = args.slice(-1)[0];
+        let body = args.slice(-1)[0].args[1];
         if (body.node == 'object') {
             body = body.args.map(convert);
         } else {
@@ -342,7 +341,7 @@ let nodes = {
             declaration: {
                 type: 'FunctionDeclaration',
                 id: convert(args[0]),
-                params: n.args.slice(1, -1).map(convert),
+                params: args[1].args.slice(0, -1).map(convert),
                 body: {
                     type: 'BlockStatement', 
                     body: body
