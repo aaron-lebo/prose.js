@@ -326,15 +326,32 @@ let nodes = {
         };
     },
     'default': n => {
-        n.args[1].node = ':=';
+        let args = n.args[1].args;
+        let body = args.slice(-1)[0];
+        if (body.node == 'object') {
+            body = body.args.map(convert);
+        } else {
+            body = Array.isArray(body) ? body.map(convert) : [convert(body)];
+        }
+        body[body.length - 1] = {
+            type: 'ReturnStatement',
+            argument: body[body.length - 1]
+        }
         return {
             type: 'ExportDefaultDeclaration',
-            declaration: convert(n.args[1])
-        }
- 
-    },
+            declaration: {
+                type: 'FunctionDeclaration',
+                id: convert(args[0]),
+                params: n.args.slice(1, -1).map(convert),
+                body: {
+                    type: 'BlockStatement', 
+                    body: body
+                }
+            }
+        };
+    }
 }
-
+ 
 function convert(ast) {
     if (typeof(ast.node) == 'string') {
         return nodes[ast.node](ast);
