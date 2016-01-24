@@ -326,13 +326,10 @@ let nodes = {
         };
     },
     'default': n => {
-        let [left, right] = n.args[1].args;
-        left.args[0] = 'exports.' + left.args[0];
+        n.args[1].node = ':=';
         return {
-            type: 'AssignmentExpression',
-            operator: '=', 
-            left: convert(left), 
-            right: convert(right)
+            type: 'ExportDefaultDeclaration',
+            declaration: convert(n.args[1])
         }
  
     },
@@ -418,6 +415,13 @@ function liftStatements(ast, block=false) {
 export default function compile(ast) {
     return escodegen.generate({
         type: 'Program',
-        body: liftStatements(stripComments(ast), true)[0].map(convert)     
+        body: [{
+            type: 'ImportDeclaration',
+            specifiers: [{
+                type: 'ImportDefaultSpecifier', 
+                id: {type: 'Identifier', name: 'Immutable'} 
+            }],
+            source: literal('immutable') 
+        }].concat(liftStatements(stripComments(ast), true)[0].map(convert))     
     }, {verbatim: 'raw'});
 }

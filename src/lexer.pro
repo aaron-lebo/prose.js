@@ -12,11 +12,12 @@ quotes = do(quote,
                 len += 1
             len += 1
         )
-        len + 1
+        len + 1 + (len str.slice tokenizers.name)
     )
 )
 
 tokenizers = [ 
+    '#': `^#.*[^\n]` match,
     '.': `^\s*\.\s*` match,
     '(': `^\(\s*` match,
     ')': `^\s*\)` match,
@@ -27,7 +28,6 @@ tokenizers = [
     ',': `^\s*,\s*` match,
     ';': `^\s*;\s*` match,
     ':': `^\s*:\s+` match,
-    '#': `^#.*[^\n]` match,
     operator: `^\s+[~!@\$%\^&\*\-_=\+|:<>\/\?]+\s+` match,
     newline: `^\s*\n\s*` match,
     ' ': `^\s+` match,
@@ -62,4 +62,5 @@ default: lex = do(str,
         (_ = val.match(`\n`)) ?(_.length, 0)
         str := str.substring(len)
     ) 
+    tokens
 )
