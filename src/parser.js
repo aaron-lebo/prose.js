@@ -82,7 +82,7 @@ operator(' ', 5);
 operator('.', 6);
 prefix('(', t => {
     let args = getArgs(')');
-    if (!args || args.filter(n => n.node != ':')[0]) {
+    if (args.length == 0 || args.filter(n => n.node != ':')[0]) {
         if (args.length == 1) {
             return args[0];
         }

@@ -1,5 +1,5 @@
 match = do(re,
-    str -> (_ = str.match(re)) ?(_.length, 0) 
+    str -> (_ = str.match(re)) ?(_[0].length, 0) 
 )
 
 quotes = do(quote,
@@ -12,7 +12,7 @@ quotes = do(quote,
                 len += 1
             len += 1
         )
-        len + 1 + (len str.slice tokenizers.name)
+        len + 1 + tokenizers.get('name')(str.slice(len))
     )
 )
 
@@ -46,12 +46,12 @@ tokenizers = [
 default: lex = do(str,
     len = nil; line = 1; tokens = () 
     for(str @ 0,
-        res = tokenizers.entrySeq().reduce(do(match, t, 
-            match ?(match, (t[0], t[1](str)))
-        )) 
-        res == nil ? 
+        res = tokenizers.entrySeq().reduce(do(m, t, 
+            m[1] == 0 ?((t[0], t[1](str)), m)
+        ), (null, 0)) 
+        type = res @ 0; len := res @ 1 
+        len == 0 ? 
             throw(str.substring(0))
-        len := res @ 0; type = res @ 1
         val = str.substring(0, len)               
         tokens.push((
             type: type == 'operator' ?(val.replace(`\s`g, ''), type),
@@ -59,7 +59,7 @@ default: lex = do(str,
             line: line,
             value: val 
         ))
-        (_ = val.match(`\n`)) ?(_.length, 0)
+        line := (_ = val.match(`\n`)) ?(_.length, 0);
         str := str.substring(len)
     ) 
     tokens

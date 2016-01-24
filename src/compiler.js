@@ -99,11 +99,16 @@ let nodes = {
         body = Array.isArray(body) ? body.map(convert) : [convert(body)];
         return {
             type: 'WhileStatement',
+            test: convert(n.args[0]),
             body: {
                 type: 'BlockStatement', 
-                body: body
-            },
-            test: convert(n.args[0])
+                body: body.map(n => {
+                    if (n.type.endsWith('Expression')) {
+                        n = {type: 'ExpressionStatement', expression: n}
+                    }
+                    return n;
+                })
+            }
         };
     },    
     '|': n => {
