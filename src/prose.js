@@ -12,7 +12,7 @@ let file = fs.readFileSync(args['_'][0]);
 let tokens = lex(file.toString()); 
 let ast = parse(tokens);
 if (args.n) {
-    console.log(JSON.stringify(ast, null, 1));
+    console.log(require('util').inspect(ast, 0, null));
 } else {
     console.log(compile(ast));
 }

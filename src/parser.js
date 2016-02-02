@@ -1,137 +1,131 @@
-let parselets = {};
-let tokens = [];
+let symbols = {};
 
-function merge(key, obj) { 
-    parselets[key] = Object.assign(parselets[key] || {}, obj);    
-}
-
-function prefix(key, fn) {
-    merge(key, {prefix: fn});    
-}
-
-function infix(key, power, fn) {
-    merge(key, {power: power, infix: fn});    
+function symbol(id, prefix, infix, power=0) {
+    let sym = symbols[id];
+    if (!sym) {
+        sym = symbols[id] = {
+            id: id,
+            prefix: prefix || (t => null),
+            infix: infix || (l => {
+                throw 'missing operator'
+            }),
+            power: power
+        };
+    }
+    return sym;
 }
 
 function node(head, args, line) {
-    return {node: head, args: args, line: line};
+    return [head, {line: line}].concat(args);
 }
 
-function operator(op, power, right=false) {
-    infix(op, power, (left, token) => {
-        return node(op, [left, expression(right ? power - 1 : power)], token.line);
-    });
+function literal(ids) {
+    return ids.map(i => { 
+        return symbol(i, t => node(i, [t.value], t.line));
+    }); 
 }
 
-function getArgs(end) {
-    let next = tokens[0];
-    let arg = [];
-    let args = [];
-    while (next) {
-        if ([';', 'newline'].indexOf(next.type) != -1) {
+function infix(power, ids, right=false) {
+    return (Array.isArray(ids) ? ids : [ids]).map(i => { 
+        return symbol(
+            i, 
+            null, 
+            (l, t, ts) => {
+                let exp = expression(ts, right ? power - 1 : power);
+                return node(i, [l, exp], t.line);
+            },
+            power 
+        ); 
+    }); 
+}
+
+function infixR(power, ids) {
+    return infix(power, ids, true);
+}
+
+function getArgs(tokens, end) {
+    let token = tokens[0], arg = [], args = [];
+    while (token) {
+        if ([';', 'newline'].indexOf(token.type) > -1) {
             tokens.shift();
-        } else if ([end, ','].indexOf(next.type) == -1) {
-            arg.push(expression());
-        } else { 
+        } else if ([end, ','].indexOf(token.type) > -1) {
             tokens.shift();
             if (arg.length != 0) {
                 args.push(arg.length == 1 ? arg[0] : arg);
                 arg = [];
             }
-            if (next.type == end) {
+            if (token.id == end) {
                 return args;
             } 
+        } else { 
+            arg.push(expression(tokens));
         } 
-        next = tokens[0];
+        token = tokens[0];
     }
+    return args;
 }
 
-function wrapper(start, end) {
-    prefix(start, t => node(t.type, getArgs(end), t.line));
-    infix(start, 6, (l, t) => node(l, getArgs(end), l.line));
-}    
-
-function literal(key) {
-    prefix(key, token => node(key, [token.value], token.line));
+function container(power, start, end, $0, $1, $2) {    
+    return symbol(
+        start, 
+        (t, ts) => {
+            let args = getArgs(ts, end);
+            if (args.filter(n => n[0] != ':').length == 0) {
+                return $0(t, args);
+            }
+            return $1(t, args); 
+        },
+        (l, t, ts) => $2(l, t, getArgs(ts, end)),
+        power
+    );
 }
 
-function terminator(op, power=1) {
-    infix(op, power, (left, token) => left);
-}
+literal(['#', 'boolean', 'name', 'number', 'string']); 
+symbol('regex', t => node('regex', t.value.split('`').slice(1), t.line));
+infix(18, '.');
+container(18, '[', ']',  
+    (t, args) => node('OrderedMap', args, t.line),
+    (t, args) => node('List', args. t.line),
+    (l, t, args) => node('at', [l].concat(args), t.line)
+);
+container(18, '{', '}', 
+    (t, args) => node('HashMap', args, t.line),
+    (t, args) => node('function', args, t.line),
+    (l, t, args) => null 
+);
+container(17, '(', ')', 
+    (t, args) => args.length == 1 ? args[0] : node('Array', args, t.line),
+    (t, args) => node('object', args, t.line),
+    (l, t, args) => node(l, args, t.line)
+);
+infix(13, ['+', '-']);
+infix(10, ['==', '!=']);
+infix(7, '&');
+infix(6, '|');
+infixR(4, '?');
+infix(3.5, ' ');
+infixR(3, ['=', ':=', '+=', '-=']);
+infixR(2, ':');
 
-prefix('quote', t => node('quote', [expression()], t.line));
-literal('#');
-literal('boolean');
-literal('name');
-literal('number'); 
-literal('string'); 
-prefix('regex', t => node('regex', t.value.split('`').slice(1), t.line));
-operator(':', 3, true);
-operator('?', 3.5);
-operator('=', 4, true);
-operator(':=', 4, true);
-operator('+=', 4, true);
-operator('->', 4.5);
-operator('|', 4.8);
-operator('==', 5);
-operator('!=', 5);
-operator('@', 5);
-operator('-', 5);
-operator('+', 5);
-operator(' ', 5);
-operator('.', 6);
-prefix('(', t => {
-    let args = getArgs(')');
-    if (args.length == 0 || args.filter(n => n.node != ':')[0]) {
-        if (args.length == 1) {
-            return args[0];
-        }
-        return node('Array', args, t.line);
-    }
-    return node('object', args, t.line);
-});
-infix('(', 6, (l, t) => node(l, [].concat(getArgs(')')), l.line));
-prefix('[', t => {
-    let args = getArgs(']');
-    if (!args[0] || args.filter(n => n.node != ':')[0]) {
-        return node('List', args, t.line);
-    }
-    return node('OrderedMap', args, t.line);
-});
-infix('[', 6, (l, t) => node('at', [l].concat(getArgs(']')), l.line));
-prefix('{', t => {
-    let args = getArgs('}');
-    if (!args[0] || args.filter(n => n.node != ':')[0]) {
-        return node('List', args, t.line);
-    }
-    return node('HashMap', args, t.line);
-});
-infix('{', 6, (l, t) => node('set', [l].concat(getArgs('}')), l.line));
-
-function expression(power=0) {
+function expression(tokens, power=0) {
     let token = tokens.shift();
-    let parselet = parselets[token.type];
-    if (!parselet) {
-        throw token.line + ': could not parse "' + token.type + '"';
-    }
-    let left = parselet.prefix && parselet.prefix(token);
-    let next = parselets[tokens[0] && tokens[0].type];
-    while (tokens[0] && power < (next && next.power || 0)) {
+    let sym = symbol(token.type);
+    let left = sym.prefix(token, tokens); 
+    while (tokens[0] && power < symbol(tokens[0].type).power) {
         token = tokens.shift();
-        left = parselets[token.type].infix(left, token);
-        next = parselets[tokens[0] && tokens[0].type];
+        sym = symbol(token.type); 
+        left = sym.infix(left, token, tokens);
     }
     return left;
 }
 
-export default function parse($tokens) {
-    tokens = $tokens;
+export default function parse(tokens) {
     let ast = [];
     while (tokens[0]) {
-        if ([';', 'newline'].indexOf(tokens[0].type) == -1) {
-            ast.push(expression()); 
-        } else {
+        if ([';', 'newline'].indexOf(tokens[0].type) > -1) {
             tokens.shift();
+        } else {
+            ast.push(expression(tokens)); 
         }
     }
     return ast;
