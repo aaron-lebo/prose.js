@@ -54,7 +54,7 @@ function getArgs(tokens, end) {
                 args.push(arg.length == 1 ? arg[0] : arg);
                 arg = [];
             }
-            if (token.id == end) {
+            if (token.type == end) {
                 return args;
             } 
         } else { 
@@ -94,8 +94,8 @@ container(18, '{', '}',
     (l, t, args) => null 
 );
 container(17, '(', ')', 
-    (t, args) => args.length == 1 ? args[0] : node('Array', args, t.line),
     (t, args) => node('object', args, t.line),
+    (t, args) => args.length == 1 ? args[0] : node('Array', args, t.line),
     (l, t, args) => node(l, args, t.line)
 );
 infix(13, ['+', '-']);
