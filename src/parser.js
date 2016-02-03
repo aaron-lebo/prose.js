@@ -62,7 +62,6 @@ function getArgs(tokens, end) {
         } 
         token = tokens[0];
     }
-    return args;
 }
 
 function container(power, start, end, $0, $1, $2) {    
