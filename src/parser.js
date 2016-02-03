@@ -89,8 +89,7 @@ container(18, '[', ']',
 );
 container(18, '{', '}', 
     (t, args) => node('HashMap', args, t.line),
-    (t, args) => node('function', args, t.line),
-    (l, t, args) => null 
+    (t, args) => node('function', args, t.line)
 );
 container(17, '(', ')', 
     (t, args) => node('object', args, t.line),
