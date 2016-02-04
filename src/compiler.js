@@ -1,79 +1,68 @@
 import escodegen from 'escodegen';
 
 function literal(val) {
-    return {
-        type: 'Literal',
-        value: val 
-    };
+    return {type: 'Literal', value: val};
 }
- 
+
+function id(name) {
+    return {type: 'Identifier', name: name};
+} 
+
+function expression(type) {
+    return (n, op) => {
+        let [left, right] = n.slice(2).map(convert);
+        return {
+            type: type,
+            operator: op || n[0],
+            left: left,
+            right: right
+        };
+    };
+}    
+
+let assignment = expression('AssignmentExpression');
+let binary = expression('BinaryExpression');
+
+function argsOf(body) {
+    return body.slice(Number(typeof body.slice(1)[0] == 'object'));
+}
+
 let nodes = {
     'boolean': n => literal(null), 
-    'name': n => {
-        return {
-            type: 'Identifier',
-            name: n.args[0]
-        }
-    },
-    'number': n => literal(parseFloat(n.args[0])),
-    'string': n => {
-        return {
-            type: 'Literal', 
-            raw: { 
-                content: n.args[0],
-                precedence: escodegen.Precedence.Primary
-            }
-        }
-    },
-    'regex': n => literal(RegExp.apply(null, n.args)),
-    'do': n => {
-        let body = n.args.slice(-1)[0];
-        if (body.node == 'object') {
-            body = body.args.map(convert);
-        } else {
-            body = Array.isArray(body) ? body.map(convert) : [convert(body)];
-        }
+    'name': n => id(n[2]),
+    'number': n => literal(parseFloat(n[2])),
+    'string': n => ({
+          type: 'Literal', 
+          raw: { 
+              content: n[2],
+              precedence: escodegen.Precedence.Primary
+          }
+    }),
+    'regex': n => literal(RegExp(n[2])),
+    'function': n => {
+        let body = n.slice(-1)[0];
+        body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
         body[body.length - 1] = {
             type: 'ReturnStatement',
             argument: body[body.length - 1]
         }
         return {
             type: 'FunctionExpression',
-            params: n.args.slice(0, -1).map(convert),
+            params: n.slice(2, -1).map(convert),
             body: {
                 type: 'BlockStatement', 
                 body: body
             }
         };
     },   
-    '->': n => {
-        let [param, body] = n.args;
-        body = Array.isArray(body) ? body.map(convert) : [convert(body)];
-        body[body.length - 1] = {
-            type: 'ReturnStatement',
-            argument: body[body.length - 1]
-        }
-        return {
-            type: 'FunctionExpression',
-            params: [convert(param)],
-            body: {
-                type: 'BlockStatement', 
-                body: body
-            }
-        };
-    },    
-    'return': n => {
-        return {
-            type: 'ReturnStatement',
-            argument: convert(n.args[0]) 
-        };
-    },    
-    'throw': n => {
-        return {
-            type: 'ThrowStatement',
-            argument: convert(n.args[0]) 
-        };
-    },    
+    'return': n => ({
+        type: 'ReturnStatement',
+        argument: convert(n[2]) 
+    }),
+    'throw': n => ({
+        type: 'ThrowStatement',
+        argument: convert(n[2]) 
+    }),
     'if': n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
@@ -85,7 +74,7 @@ let nodes = {
         return exp;  
     },      
     '?': n => {
-        let [a, b, c] = n.args.map(convert);
+        let [a, b, c] = n.slice(2).map(convert);
         let exp = {
             type: 'ConditionalExpression',
             test: a,
@@ -95,19 +84,16 @@ let nodes = {
         return exp;  
     },      
     'for': n => {
-        let body = n.args.slice(-1)[0];
-        body = Array.isArray(body) ? body.map(convert) : [convert(body)];
+        let body = n.slice(-1)[0];
+        body = body[0] == 'do' ? body.slice(2).map(convert) : [convert(body)];
         return {
             type: 'WhileStatement',
-            test: convert(n.args[0]),
+            test: convert(n[2]),
             body: {
                 type: 'BlockStatement', 
-                body: body.map(n => {
-                    if (n.type.endsWith('Expression')) {
-                        n = {type: 'ExpressionStatement', expression: n}
-                    }
-                    return n;
-                })
+                body: body.map($n => $n.type.endsWith('Expression') 
+                    ? {type: 'ExpressionStatement', expression: $n} : $n
+                )
             }
         };
     },    
@@ -121,7 +107,7 @@ let nodes = {
         }
     },    
     'at': n => {
-        let [left, right] = n.args.map(convert);
+        let [left, right] = n.slice(2).map(convert);
         return {
             type: 'MemberExpression',
             object: left,
@@ -129,7 +115,6 @@ let nodes = {
             computed: true 
         }
     },
-    '@': n => nodes.at(n),
     'import': node => {
         return {
             type: 'VariableDeclaration',
@@ -140,7 +125,7 @@ let nodes = {
                     id: left, 
                     init: {
                         type: 'CallExpression',
-                        callee: {type: 'Identifier', name: 'require'},
+                        callee: id('require'),
                         arguments: [right]
                     }
                 }; 
@@ -148,34 +133,9 @@ let nodes = {
             kind: 'let'
         };       
     },
-    '+': n => {
-        let [left, right] = n.args.map(convert);
-        return {
-            type: 'BinaryExpression',
-            operator: n.node,
-            left: left,
-            right: right
-        }
-    },    
-    '-': n => nodes['+'](n), 
-    '==': n => {
-        let [left, right] = n.args.map(convert);
-        return {
-            type: 'BinaryExpression',
-            operator: '===',
-            left: left,
-            right: right
-        }
-    },    
-    '!=': n => { 
-        let [left, right] = n.args.map(convert);
-        return {
-            type: 'BinaryExpression',
-            operator: '!==',
-            left: left,
-            right: right
-        }
-    },    
+    '+': binary,
+    '==': n => binary(n, '==='),
+    '!=': n => binary(n, '!=='),
     'object': n => {
         let args = n.args;
         if (args.length == 1) { 
@@ -195,38 +155,19 @@ let nodes = {
             })
         };
     },
-    '(': n => {
-        return {
-            type: 'CallExpression',
-            callee: convert(n.node),
-            arguments: n.args.map($n => { 
-                if (Array.isArray($n)) { 
-                    return {
-                        type: 'SequenceExpression', 
-                        expressions: $n.map(convert)
-                    };
-                } 
-                if ($n.node == ':') {
-                    $n.node = ':=';
-                    return nodes[':=']($n);
-                }
-                return convert($n);
-            }) 
-        }
-    },
-    'Array': n => {
-        return {
-            type: 'ArrayExpression',
-            elements: n.args.map(convert)
-        }
-    },      
+    '(': n => ({
+        type: 'CallExpression',
+        callee: convert(n[0]),
+        arguments: n.slice(2).map(convert)
+    }),
+    'Array': n => ({
+        type: 'ArrayExpression',
+        elements: n.slice(2).map(convert)
+    }),      
     'HashMap': n => {
         return {
             type: 'CallExpression',
-            callee: {
-                type: 'Identifier', 
-                name: 'Immutable.HashMap'
-            },
+            callee: id('Immutable.HashMap'),
             arguments: [{
                 type: 'ObjectExpression', 
                 properties: n.args.map($n => {
@@ -241,56 +182,41 @@ let nodes = {
             }]
         }
     },    
-    'OrderedMap': n => {
-        return {
-            type: 'CallExpression',
-            callee: {
-                type: 'Identifier', 
-                name: 'Immutable.OrderedMap'
-            },
-            arguments: [{
-                type: 'ObjectExpression', 
-                properties: n.args.map($n => {
-                    let args = $n.args.map(convert);
-                    return {
-                        type: 'Property',
-                        key: args[0],
-                        value: args[1],
-                        kind: 'init'
-                    };
-                })
-            }]
-        }
-    },    
-    '{': n => {
-        return {
-            type: 'CallExpression',
-            callee: {type: 'Identifier', name: 'Immutable.HashMap'},
-            arguments: n.args.map($n => { 
-                if (Array.isArray($n)) { 
-                    return {
-                        type: 'SequenceExpression', 
-                        expressions: $n.map(convert)
-                    };
-                } 
-                if ($n.node == ':') {
-                    $n.node = '=';
-                    return nodes['=']($n);
-                }
-                return convert($n);
-            }) 
-        }
-    },
-    ' ': n => {
-        let [left, right] = n.args;
-        if (['.', 'name'].indexOf(right.node.node) == -1) {
-            return convert({node: right, args: [left]});
-        }
-        right.args.splice(0, 0, left);
-        return convert(right);
-    },
+    OrderedMap: n => ({ 
+        type: 'CallExpression',
+        callee: id('Immutable.OrderedMap'),
+        arguments: [{
+            type: 'ObjectExpression', 
+            properties: n.slice(2).map($n => {
+                let [k, v] = $n.slice(2).map(convert);
+                return {
+                    type: 'Property',
+                    key: k,
+                    value: v,
+                    kind: 'init'
+                };
+            })
+        }]
+    }),    
+    '{': n => ({
+        type: 'CallExpression',
+        callee: id('Immutable.HashMap'),
+        arguments: n.slice(2).map($n => { 
+            if (Array.isArray($n)) { 
+                return {
+                    type: 'SequenceExpression', 
+                    expressions: $n.map(convert)
+                };
+            } 
+            if ($n[0] == ':') {
+                $n[0] = '=';
+                return nodes['=']($n);
+            }
+            return convert($n);
+        }) 
+    }),
     '.': n => {
-        let [left, right] = n.args.map(convert);
+        let [left, right] = n.slice(2).map(convert);
         return {
             type: 'MemberExpression',
             object: left,
@@ -299,7 +225,7 @@ let nodes = {
         }
     },
     '=': n => {
-        let [left, right] = n.args.map(convert);
+        let [left, right] = n.slice(2).map(convert);
         return {
             type: 'VariableDeclaration',
             declarations: [{
@@ -310,25 +236,8 @@ let nodes = {
             kind: 'let'
         }
     },
-    ':=': n => {
-        let [left, right] = n.args.map(convert);
-        n.node = '=';
-        return {
-            type: 'AssignmentExpression',
-            operator: n.node, 
-            left: left, 
-            right: right
-        };
-    },
-    '+=': n => {
-        let [left, right] = n.args.map(convert);
-        return {
-            type: 'AssignmentExpression',
-            operator: n.node, 
-            left: left, 
-            right: right
-        };
-    },
+    ':=': n => assignment(n, '='),
+    '+=': assignment, 
     'default': n => {
         let args = n.args[1].args;
         let body = args.slice(-1)[0].args[1];
@@ -357,15 +266,12 @@ let nodes = {
 }
  
 function convert(ast) {
-    if (typeof(ast.node) == 'string') {
-        return nodes[ast.node](ast);
-    } 
-    let args = ast.node.args;
-    let node = nodes[args && args[0]] || nodes['('];
-    return node(ast); 
+    let head = ast[0];
+    return (nodes[head] || nodes[head[2]] || nodes['('])(ast); 
 }
 
 function stripComments(ast) { 
+    return ast;
     let $ast = [];
     for (let node of ast) {
         if (Array.isArray(node)) {
@@ -382,6 +288,7 @@ function stripComments(ast) {
 }
 
 function liftStatements(ast, block=false) { 
+    return [ast, statements];
     let $ast = [];
     let statements = [];
     let res;
@@ -440,7 +347,7 @@ export default function compile(ast) {
             type: 'ImportDeclaration',
             specifiers: [{
                 type: 'ImportDefaultSpecifier', 
-                id: {type: 'Identifier', name: 'Immutable'} 
+                id: id('Immutable') 
             }],
             source: literal('immutable') 
         }].concat(liftStatements(stripComments(ast), true)[0].map(convert))     

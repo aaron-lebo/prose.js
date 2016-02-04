@@ -15,8 +15,8 @@ function symbol(id, prefix, infix, power=0) {
     return sym;
 }
 
-function node(head, args, line) {
-    return [head, {line: line}].concat(args);
+function node(head, args, x) {
+    return [head, {x: x}].concat(args);
 }
 
 function literal(ids) {
@@ -51,7 +51,7 @@ function getArgs(tokens, end) {
         } else if ([end, ','].indexOf(token.type) > -1) {
             tokens.shift();
             if (arg.length != 0) {
-                args.push(arg.length == 1 ? arg[0] : arg);
+                args.push(arg.length == 1 ? arg[0] : ['do'].concat(arg));
                 arg = [];
             }
             if (token.type == end) {
@@ -101,7 +101,11 @@ infix(10, ['==', '!=']);
 infix(7, '&');
 infix(6, '|');
 infixR(4, '?');
-infix(3.5, ' ');
+symbol(' ', null, (l, t, ts) => {
+    let exp = expression(ts, 3.5);
+    exp.splice(2, 0, l);
+    return exp;
+}, 3.5);
 infixR(3, ['=', ':=', '+=', '-=']);
 infixR(2, ':');
 
