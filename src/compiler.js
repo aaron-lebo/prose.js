@@ -13,7 +13,7 @@ function block(body) {
 }
 
 function statement(type, node) {
-    return {type: type + 'Statement', argument: convert(node[2])};
+    return {type: type + 'Statement', argument: node};
 }
 
 function argsOf(node) {
@@ -69,6 +69,7 @@ let nodes = {
     function: n => {
         let body = n.slice(-1)[0];
         body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
+        console.log(statement('Return', body[body.length - 1]));
         body[body.length - 1] = statement('Return', body[body.length - 1]);
         return {
             type: 'FunctionExpression',
