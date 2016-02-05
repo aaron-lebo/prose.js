@@ -8,9 +8,13 @@ function id(name) {
     return {type: 'Identifier', name: name};
 } 
 
+function argsOf(node) {
+    return node.slice(Array.isArray(node[1]) ? 1 : 2);
+}
+
 function expression(type) {
     return (n, op) => {
-        let [left, right] = n.slice(2).map(convert);
+        let [left, right] = argsOf(n).map(convert);
         return {
             type: type,
             operator: op || n[0],
@@ -23,10 +27,6 @@ function expression(type) {
 let assignment = expression('AssignmentExpression');
 let binary = expression('BinaryExpression');
 
-function argsOf(body) {
-    return body.slice(Number(typeof body.slice(1)[0] == 'object'));
-}
-
 let nodes = {
     'boolean': n => literal(null), 
     'name': n => id(n[2]),
@@ -38,7 +38,7 @@ let nodes = {
               precedence: escodegen.Precedence.Primary
           }
     }),
-    'regex': n => literal(RegExp(n[2])),
+    'regex': n => literal(RegExp.apply(null, argsOf(n))),
     'function': n => {
         let body = n.slice(-1)[0];
         body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
@@ -74,7 +74,7 @@ let nodes = {
         return exp;  
     },      
     '?': n => {
-        let [a, b, c] = n.slice(2).map(convert);
+        let [a, b, c] = argsOf(n).map(convert);
         let exp = {
             type: 'ConditionalExpression',
             test: a,
@@ -85,7 +85,7 @@ let nodes = {
     },      
     'for': n => {
         let body = n.slice(-1)[0];
-        body = body[0] == 'do' ? body.slice(2).map(convert) : [convert(body)];
+        body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
         return {
             type: 'WhileStatement',
             test: convert(n[2]),
@@ -107,7 +107,7 @@ let nodes = {
         }
     },    
     'at': n => {
-        let [left, right] = n.slice(2).map(convert);
+        let [left, right] = argsOf(n).map(convert);
         return {
             type: 'MemberExpression',
             object: left,
@@ -158,7 +158,7 @@ let nodes = {
     '(': n => ({
         type: 'CallExpression',
         callee: convert(n[0]),
-        arguments: n.slice(2).map(convert)
+        arguments: argsOf(n).map(convert)
     }),
     'Array': n => ({
         type: 'ArrayExpression',
@@ -187,8 +187,8 @@ let nodes = {
         callee: id('Immutable.OrderedMap'),
         arguments: [{
             type: 'ObjectExpression', 
-            properties: n.slice(2).map($n => {
-                let [k, v] = $n.slice(2).map(convert);
+            properties: argsOf(n).map($n => {
+                let [k, v] = argsOf($n).map(convert);
                 return {
                     type: 'Property',
                     key: k,

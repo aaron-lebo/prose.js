@@ -101,11 +101,7 @@ infix(10, ['==', '!=']);
 infix(7, '&');
 infix(6, '|');
 infixR(4, '?');
-symbol(' ', null, (l, t, ts) => {
-    let exp = expression(ts, 3.5);
-    exp.splice(2, 0, l);
-    return exp;
-}, 3.5);
+symbol(' ', null, (l, t, ts) => [expression(ts, 3.5), l], 3.5);
 infixR(3, ['=', ':=', '+=', '-=']);
 infixR(2, ':');
 
