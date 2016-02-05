@@ -5,11 +5,20 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "babel": "babel src --watch --out-dir lib --source-maps" 
+    "babel": "babel src -d lib --watch --source-maps"
   },
   "author": "Aaron Lebo",
   "license": "ISC",
   "bin": {
     "prose": "lib/prose.js"
-  }    
+  },
+  "devDependencies": {
+    "babel-cli": "^6.4.5",
+    "babel-preset-es2015": "^6.3.13"
+  },
+  "dependencies": {
+    "escodegen": "^1.8.0",
+    "immutable": "^3.7.6",
+    "minimist": "^1.2.0"
+  }
 }
