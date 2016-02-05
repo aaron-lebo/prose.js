@@ -69,7 +69,6 @@ let nodes = {
     function: n => {
         let body = n.slice(-1)[0];
         body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
-        console.log(statement('Return', body[body.length - 1]));
         body[body.length - 1] = statement('Return', body[body.length - 1]);
         return {
             type: 'FunctionExpression',
@@ -77,8 +76,8 @@ let nodes = {
             body: block(body)
         };
     },   
-    return: n => statement('Return', n),
-    throw: n => statement('Throw', n),
+    return: n => statement('Return', convert(n[2])),
+    throw: n => statement('Throw', convert(n[2])),
     if: n => {
         let [a, b, c] = n.args.map(convert);
         let exp = {
@@ -143,6 +142,7 @@ let nodes = {
         };       
     },
     '+': binary,
+    '-': binary,
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
     object: n => {

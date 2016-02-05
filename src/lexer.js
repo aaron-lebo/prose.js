@@ -18,7 +18,8 @@ let quotes = function (quote) {
             }
             len += 1;
         }
-        return len + 1 + tokenizers.get('name')(str.slice(len));
+        len += 1
+        return len + tokenizers.get('name')(str.slice(len));
     };
 };
 let tokenizers = Immutable.OrderedMap({

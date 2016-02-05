@@ -12,7 +12,8 @@ quotes = {quote,
                 len += 1
             len += 1
         )
-        len + 1 + tokenizers.get('name')(str.slice(len))
+        len += 1
+        len + tokenizers.get('name')(str.slice(len))
     } 
 }
 
