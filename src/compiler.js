@@ -103,22 +103,14 @@ let nodes = {
     function: n => fun(null, n), 
     return: n => statement('Return', convert(n[2])),
     throw: n => statement('Throw', convert(n[2])),
-    if: n => {
-        let [a, b, c] = n.args.map(convert);
-        return {
-            type: 'IfStatement',
-            test: a,
-            consequent: block([b]),
-            alternate: c && block([c])
-        }
-    },      
     '?': n => {
-        let [a, b, c] = argsOf(n).map(convert);
+        let [test, con, alt] = argsOf(n).map(convert);
+        let statements = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
         return {
-            type: 'ConditionalExpression',
-            test: a,
-            consequent: b,
-            alternate: c || literal(null)
+            type: statements ? 'IfStatement' :  'ConditionalExpression', 
+            test: test,
+            consequent: con,
+            alternate: alt || (statements ? null : literal(null)) 
         }
     },      
     for: n => {
