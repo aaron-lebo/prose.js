@@ -19,6 +19,7 @@ function statement(type, node) {
 function argsOf(node) {
     return node.slice(Array.isArray(node[1]) ? 1 : 2);
 }
+
 function member(node, computed=false) {
     let [obj, prop] = argsOf(node).map(convert);
     return {
@@ -89,23 +90,21 @@ let nodes = {
     throw: n => statement('Throw', convert(n[2])),
     if: n => {
         let [a, b, c] = n.args.map(convert);
-        let exp = {
+        return {
             type: 'IfStatement',
             test: a,
             consequent: block([b]),
             alternate: c && block([c])
         }
-        return exp;  
     },      
     '?': n => {
         let [a, b, c] = argsOf(n).map(convert);
-        let exp = {
+        return {
             type: 'ConditionalExpression',
             test: a,
             consequent: b,
             alternate: c || literal(null)
         }
-        return exp;  
     },      
     for: n => {
         let body = n.slice(-1)[0];
