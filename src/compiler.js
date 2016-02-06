@@ -20,6 +20,18 @@ function argsOf(node) {
     return node.slice(Array.isArray(node[1]) ? 1 : 2);
 }
 
+function fun(name, node) {
+    let body = node.slice(-1)[0];
+    body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
+    body[body.length - 1] = statement('Return', body[body.length - 1]);
+    return {
+        type: 'Function' + (name ? 'Declaration' : 'Expression'),
+        name: name && convert(name),
+        params: node.slice(2, -1).map(convert),
+        body: block(body)
+    };
+}   
+ 
 function member(node, computed=false) {
     let [obj, prop] = argsOf(node).map(convert);
     return {
@@ -76,16 +88,7 @@ let nodes = {
           }
     }),
     regex: n => literal(RegExp.apply(null, argsOf(n))),
-    function: n => {
-        let body = n.slice(-1)[0];
-        body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
-        body[body.length - 1] = statement('Return', body[body.length - 1]);
-        return {
-            type: 'FunctionExpression',
-            params: n.slice(2, -1).map(convert),
-            body: block(body)
-        };
-    },   
+    function: n => fun(null, n), 
     return: n => statement('Return', convert(n[2])),
     throw: n => statement('Throw', convert(n[2])),
     if: n => {
@@ -171,24 +174,8 @@ let nodes = {
     },
     ':=': n => assignment(n, '='),
     '+=': assignment, 
-    default: n => {
-        let args = n.args[1].args;
-        let body = args.slice(-1)[0].args[1];
-        if (body.node == 'object') {
-            body = body.args.map(convert);
-        } else {
-            body = Array.isArray(body) ? body.map(convert) : [convert(body)];
-        }
-        body[body.length - 1] = statement('Return', body[body.length - 1]);
-        return {
-            type: 'ExportDefaultDeclaration',
-            declaration: {
-                type: 'FunctionDeclaration',
-                id: convert(args[0]),
-                params: args[1].args.slice(0, -1).map(convert),
-                body: block(body)
-            }
-        };
+    ':': n => {     
+        return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3]))};
     }
 }
 
@@ -206,10 +193,7 @@ export default function compile(ast) {
         type: 'Program',
         body: [{
             type: 'ImportDeclaration',
-            specifiers: [{
-                type: 'ImportDefaultSpecifier', 
-                id: id('Immutable') 
-            }],
+            specifiers: [{type: 'ImportDefaultSpecifier', id: id('Immutable') }],
             source: literal('immutable') 
         }].concat(ast.map(convert))     
     }, {verbatim: 'raw'});
