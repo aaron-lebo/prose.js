@@ -194,11 +194,8 @@ let nodes = {
 
 function convert(node) {
     let head = node[0]; 
-    let parser = nodes[head];
-    if (parser) {
-        return parser(node);
-    }
-    return call(
+    let parser = nodes[head] || nodes[head[2]];
+    return parser ? parser(node) : call(
         Array.isArray(head) ? convert(head) : id(head), 
         argsOf(node).map(convert)
     );
