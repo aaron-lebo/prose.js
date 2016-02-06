@@ -153,7 +153,6 @@ let nodes = {
         }
         return object(n); 
     },
-    '(': n => call(convert(n[0]), argsOf(n).map(convert)),
     Array: n => ({type: 'ArrayExpression', elements: n.slice(2).map(convert)}),      
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
     OrderedMap: n => call(id('Immutable.OrderedMap'), [object(n)]),    
@@ -200,10 +199,13 @@ let nodes = {
         };
     }
 }
- 
-function convert(ast) {
-    let head = ast[0];
-    return (nodes[head] || nodes[head[2]] || nodes['('])(ast); 
+
+function convert(node) {
+    let parser = nodes[node[0]];
+    if (parser) {
+        return parser(node);
+    }
+    return call(id(node[0]), argsOf(node).map(convert));
 }
 
 export default function compile(ast) {
