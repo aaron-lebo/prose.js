@@ -1,7 +1,11 @@
 import escodegen from 'escodegen';
 
-function literal(val) {
-    return {type: 'Literal', value: val};
+function literal(val, raw) {
+    let node = {type: 'Literal', value: val};
+    if (raw) {
+        node.raw = raw;
+    }
+    return node;
 }
 
 function id(name) {
@@ -16,13 +20,14 @@ function statement(type, node) {
     return {type: type + 'Statement', argument: node};
 }
 
-function argsOf(node) {
-    return node.slice(Array.isArray(node[1]) ? 1 : 2);
+function argsOf(node, $convert=true) {
+    let args = node.slice(Array.isArray(node[1]) ? 1 : 2);
+    return $convert ? args.map(convert) : args; 
 }
 
 function fun(name, node) {
     let body = node.slice(-1)[0];
-    body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
+    body = body[0] == 'do' ? argsOf(body) : [convert(body)];
     body[body.length - 1] = statement('Return', body[body.length - 1]);
     return {
         type: 'Function' + (name ? 'Declaration' : 'Expression'),
@@ -33,7 +38,7 @@ function fun(name, node) {
 }   
  
 function member(node, computed=false) {
-    let [obj, prop] = argsOf(node).map(convert);
+    let [obj, prop] = argsOf(node);
     return {
         type: 'MemberExpression',
         object: obj,
@@ -49,8 +54,8 @@ function call(callee, args) {
 function object(node) {
     return {
         type: 'ObjectExpression', 
-        properties: argsOf(node).map(n => {
-            let [k, v] = argsOf(n).map(convert);
+        properties: argsOf(node, false).map(n => {
+            let [k, v] = argsOf(n);
             return {
                 type: 'Property',
                 key: k,
@@ -75,7 +80,7 @@ function variable(id, init) {
  
 function expression(type) {
     return (n, op) => {
-        let [left, right] = argsOf(n).map(convert);
+        let [left, right] = argsOf(n);
         return {
             type: type,
             operator: op || n[0],
@@ -92,19 +97,16 @@ let nodes = {
     boolean: n => literal(null), 
     name: n => id(n[2]),
     number: n => literal(parseFloat(n[2])),
-    string: n => ({
-          type: 'Literal', 
-          raw: { 
-              content: n[2],
-              precedence: escodegen.Precedence.Primary
-          }
+    string: n => literal(null, { 
+          content: n[2],
+          precedence: escodegen.Precedence.Primary
     }),
-    regex: n => literal(RegExp.apply(null, argsOf(n))),
+    regex: n => literal(RegExp.apply(null, argsOf(n, false))),
     function: n => fun(null, n), 
     return: n => statement('Return', convert(n[2])),
     throw: n => statement('Throw', convert(n[2])),
     '?': n => {
-        let [test, con, alt] = argsOf(n).map(convert);
+        let [test, con, alt] = argsOf(n);
         let statements = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
         return {
             type: statements ? 'IfStatement' :  'ConditionalExpression', 
@@ -115,7 +117,7 @@ let nodes = {
     },      
     for: n => {
         let body = n.slice(-1)[0];
-        body = body[0] == 'do' ? argsOf(body).map(convert) : [convert(body)];
+        body = body[0] == 'do' ? argsOf(body) : [convert(body)];
         return {
             type: 'WhileStatement',
             test: convert(n[2]),
@@ -149,22 +151,22 @@ let nodes = {
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
     object: n => {
-        let args = argsOf(n);
+        let args = argsOf(n, false);
         if (args.length == 1) { 
             let arg = args[0];
             return Array.isArray(arg) ? arg : convert(arg);
         }
         return object(n); 
     },
-    Array: n => ({type: 'ArrayExpression', elements: n.slice(2).map(convert)}),      
+    Array: n => ({type: 'ArrayExpression', elements: argsOf(n)}),      
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
     OrderedMap: n => call(id('Immutable.OrderedMap'), [object(n)]),    
     '.': n => member(n), 
-    '=': n => variable.apply(null, argsOf(n).map(convert)),
+    '=': n => variable.apply(null, argsOf(n)),
     ':=': n => assignment(n, '='),
     '+=': assignment, 
     ':': n => {     
-        return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3]))};
+        return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3], false))};
     }
 }
 
@@ -173,7 +175,7 @@ function convert(node) {
     let parser = nodes[head] || nodes[head[2]];
     return parser ? parser(node) : call(
         Array.isArray(head) ? convert(head) : id(head), 
-        argsOf(node).map(convert)
+        argsOf(node)
     );
 }
 
