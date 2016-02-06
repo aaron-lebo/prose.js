@@ -103,7 +103,7 @@ infix(6, '|');
 infixR(4, '?');
 symbol(' ', null, (l, t, ts) => {
     let exp = expression(ts, 3.5);
-    if (exp[0][2] == 'name') {
+    if (exp[0] == 'name' || exp[0][2] == 'name') {
         return [exp, l];
     }
     exp.splice(2, 0, l);
