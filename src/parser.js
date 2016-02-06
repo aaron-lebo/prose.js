@@ -69,7 +69,7 @@ function container(power, start, end, $0, $1, $2) {
         start, 
         (t, ts) => {
             let args = getArgs(ts, end);
-            if (args.filter(n => n[0] != ':').length == 0) {
+            if (args.length > 0 && args.filter(n => n[0] != ':').length == 0) {
                 return $0(t, args);
             }
             return $1(t, args); 
