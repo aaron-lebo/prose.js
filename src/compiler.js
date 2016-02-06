@@ -146,7 +146,7 @@ let nodes = {
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
     object: n => {
-        let args = n.args;
+        let args = argsOf(n);
         if (args.length == 1) { 
             let arg = args[0];
             return Array.isArray(arg) ? arg : convert(arg);
@@ -157,7 +157,8 @@ let nodes = {
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
     OrderedMap: n => call(id('Immutable.OrderedMap'), [object(n)]),    
     '.': n => {
-        let [left, right] = n.slice(2).map(convert);
+        console.log(n);
+        let [left, right] = argsOf(n).map(convert);
         return {
             type: 'MemberExpression',
             object: left,
@@ -201,11 +202,15 @@ let nodes = {
 }
 
 function convert(node) {
-    let parser = nodes[node[0]];
+    let head = node[0]; 
+    let parser = nodes[head];
     if (parser) {
         return parser(node);
     }
-    return call(id(node[0]), argsOf(node).map(convert));
+    return call(
+        Array.isArray(head) ? convert(head) : id(head), 
+        argsOf(node).map(convert)
+    );
 }
 
 export default function compile(ast) {
