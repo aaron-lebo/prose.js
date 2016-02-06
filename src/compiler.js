@@ -19,7 +19,16 @@ function statement(type, node) {
 function argsOf(node) {
     return node.slice(Array.isArray(node[1]) ? 1 : 2);
 }
-
+function member(node, computed=false) {
+    let [obj, prop] = argsOf(node).map(convert);
+    return {
+        type: 'MemberExpression',
+        object: obj,
+        property: prop,
+        computed: computed 
+    };
+}
+ 
 function call(callee, args) {
     return {type: 'CallExpression', callee: callee, arguments: args};
 }
@@ -118,15 +127,7 @@ let nodes = {
             right: right
         }
     },    
-    at: n => {
-        let [left, right] = argsOf(n).map(convert);
-        return {
-            type: 'MemberExpression',
-            object: left,
-            property: right,
-            computed: true 
-        }
-    },
+    at: n => member(n, true),
     import: n => {
         return {
             type: 'VariableDeclaration',
@@ -156,16 +157,7 @@ let nodes = {
     Array: n => ({type: 'ArrayExpression', elements: n.slice(2).map(convert)}),      
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
     OrderedMap: n => call(id('Immutable.OrderedMap'), [object(n)]),    
-    '.': n => {
-        console.log(n);
-        let [left, right] = argsOf(n).map(convert);
-        return {
-            type: 'MemberExpression',
-            object: left,
-            property: right,
-            computed: false 
-        }
-    },
+    '.': n => member(n), 
     '=': n => {
         let [left, right] = n.slice(2).map(convert);
         return {
