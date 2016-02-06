@@ -69,7 +69,7 @@ function container(power, start, end, $0, $1, $2) {
         start, 
         (t, ts) => {
             let args = getArgs(ts, end);
-            if (args.length > 0 && args.filter(n => n[0] != ':').length == 0) {
+            if (args.length == 0 || args.filter(n => n[0] == ':').length == 0) {
                 return $0(t, args);
             }
             return $1(t, args); 
@@ -83,17 +83,17 @@ literal(['#', 'boolean', 'name', 'number', 'string']);
 symbol('regex', t => node('regex', t.value.split('`').slice(1), t.line));
 infix(18, '.');
 container(18, '[', ']',  
-    (t, args) => node('OrderedMap', args, t.line),
     (t, args) => node('List', args. t.line),
+    (t, args) => node('OrderedMap', args, t.line),
     (l, t, args) => node('at', [l].concat(args), t.line)
 );
 container(18, '{', '}', 
-    (t, args) => node('HashMap', args, t.line),
-    (t, args) => node('function', args, t.line)
+    (t, args) => node('function', args, t.line),
+    (t, args) => node('HashMap', args, t.line)
 );
 container(17, '(', ')', 
-    (t, args) => node('object', args, t.line),
     (t, args) => args.length == 1 ? args[0] : node('Array', args, t.line),
+    (t, args) => node('object', args, t.line),
     (l, t, args) => node(l, args, t.line)
 );
 infix(13, ['+', '-']);
