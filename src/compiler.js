@@ -88,7 +88,23 @@ function expression(type) {
             right: right
         };
     };
-}    
+}                
+
+let vars = [];
+function lift(node, block=false) {
+    if (Array.isArray(node)) {
+        return node.map(lift);
+    } else if (node && typeof node == 'object' && !(node instanceof RegExp)) {
+        if (!block && node.type == 'VariableDeclaration') {
+            vars.push(node);
+            return node.declarations[0].id;
+        }
+        Object.getOwnPropertyNames(node).forEach(n => {
+            node[n] = lift(node[n]);
+        });
+    }
+    return node;
+}
 
 let assignment = expression('AssignmentExpression');
 let binary = expression('BinaryExpression');
@@ -107,23 +123,27 @@ let nodes = {
     throw: n => statement('Throw', convert(n[2])),
     '?': n => {
         let [test, con, alt] = argsOf(n);
-        let statements = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
+        let statement = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
         return {
-            type: statements ? 'IfStatement' :  'ConditionalExpression', 
+            type: statement ? 'IfStatement' :  'ConditionalExpression', 
             test: test,
             consequent: con,
-            alternate: alt || (statements ? null : literal(null)) 
+            alternate: alt || (statement ? null : literal(null)) 
         }
     },      
     for: n => {
-        let body = n.slice(-1)[0];
+        let body = n.slice(-1)[0], $body = [];
         body = body[0] == 'do' ? argsOf(body) : [convert(body)];
+        for (let node of body) {
+            node = lift(node, true);
+            $body = $body.concat(vars);
+            $body.push(node.type.endsWith('Expression') ? {type: 'ExpressionStatement', expression: node} : node);
+            vars = [];
+        }
         return {
             type: 'WhileStatement',
             test: convert(n[2]),
-            body: block(body.map($n => $n.type.endsWith('Expression') 
-                ? {type: 'ExpressionStatement', expression: $n} : $n
-            ))
+            body: block($body)
         };
     },    
     '|': n => {
