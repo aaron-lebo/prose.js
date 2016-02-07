@@ -13,6 +13,8 @@ let tokens = lex(file.toString());
 let ast = parse(tokens);
 if (args.n) {
     console.log(require('util').inspect(ast, 0, null));
+} else if (args.c) {
+    console.log(JSON.stringify(ast, null, 2));
 } else {
     console.log(compile(ast));
 }
