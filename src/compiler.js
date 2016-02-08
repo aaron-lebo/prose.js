@@ -74,7 +74,7 @@ function variable(id, init) {
             id: id,
             init: init 
         }],
-        kind: 'const'
+        kind: 'let'
     };
 }
  
