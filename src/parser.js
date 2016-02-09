@@ -100,7 +100,6 @@ infix(13, ['+', '-']);
 infix(10, ['==', '!=']);
 infix(7, '&');
 infix(6, '|');
-infixR(4, '?');
 symbol(' ', null, (l, t, ts) => {
     let exp = expression(ts, 3.5);
     if (exp[0] == 'name' || exp[0][2] == 'name') {
@@ -109,7 +108,7 @@ symbol(' ', null, (l, t, ts) => {
     exp.splice(2, 0, l);
     return exp;
 }, 3.5);
-infixR(3, ['=', ':=', '+=', '-=']);
+infixR(3, ['=', ':=', '+=', '-=', '?']);
 infixR(2, ':');
 
 function expression(tokens, power=0) {
