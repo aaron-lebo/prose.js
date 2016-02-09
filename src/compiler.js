@@ -12,8 +12,39 @@ function id(name) {
     return {type: 'Identifier', name: name};
 } 
 
-function block(body) {
-    return {type: 'BlockStatement', body: body}; 
+let vars = [];
+
+function lift(node, safe) {
+    if (Array.isArray(node)) {
+        return node.map(n => lift(n, safe));
+    } else if (node && typeof node == 'object' && !(node instanceof RegExp)) {
+        if (!safe && node.type == 'VariableDeclaration') {
+            vars.push(node);
+            return node.declarations[0].id;
+        }
+        Object.getOwnPropertyNames(node).forEach(n => {
+            node[n] = lift(node[n], n == 'body');
+        });
+    }
+    return node;
+}
+
+function block(node, $return) {
+    let body = node.slice(-1)[0];
+    let $body = [];
+    body = (body[0] == 'do' ? argsOf(body) : [convert(body)]);
+    for (let i = 0; i < body.length; i++) {
+        let $n = $return && i == body.length - 1 ? 
+            statement('Return', lift(body[i])) : 
+            lift(body[i], true);
+        $body = $body.concat(vars);
+        vars = [];
+        $body.push($n.type.endsWith('Expression') ? 
+            {type: 'ExpressionStatement', expression: $n} : 
+            $n
+        );
+    }
+    return {type: 'BlockStatement', body: $body}; 
 }
 
 function statement(type, node) {
@@ -26,14 +57,12 @@ function argsOf(node, $convert=true) {
 }
 
 function fun(name, node) {
-    let body = node.slice(-1)[0];
-    body = body[0] == 'do' ? argsOf(body) : [convert(body)];
-    body[body.length - 1] = statement('Return', body[body.length - 1]);
+    let body = block(node, true);
     return {
         type: 'Function' + (name ? 'Declaration' : 'Expression'),
         name: name && convert(name),
         params: node.slice(2, -1).map(convert),
-        body: block(body)
+        body: body
     };
 }   
  
@@ -90,22 +119,6 @@ function expression(type) {
     };
 }                
 
-let vars = [];
-function lift(node, block=false) {
-    if (Array.isArray(node)) {
-        return node.map(lift);
-    } else if (node && typeof node == 'object' && !(node instanceof RegExp)) {
-        if (!block && node.type == 'VariableDeclaration') {
-            vars.push(node);
-            return node.declarations[0].id;
-        }
-        Object.getOwnPropertyNames(node).forEach(n => {
-            node[n] = lift(node[n]);
-        });
-    }
-    return node;
-}
-
 let assignment = expression('AssignmentExpression');
 let binary = expression('BinaryExpression');
 
@@ -132,18 +145,10 @@ let nodes = {
         }
     },      
     for: n => {
-        let body = n.slice(-1)[0], $body = [];
-        body = body[0] == 'do' ? argsOf(body) : [convert(body)];
-        for (let node of body) {
-            node = lift(node, true);
-            $body = $body.concat(vars);
-            $body.push(node.type.endsWith('Expression') ? {type: 'ExpressionStatement', expression: node} : node);
-            vars = [];
-        }
-        return {
+       return {
             type: 'WhileStatement',
             test: convert(n[2]),
-            body: block($body)
+            body: block(n)
         };
     },    
     '|': n => {
@@ -162,6 +167,7 @@ let nodes = {
             declarations: n.args.map($n => {
                 let [left, right] = $n.args.map(convert);
                 return variable(left, call(id('require'), [right]));
+
             }),
             kind: 'let'
         };       
