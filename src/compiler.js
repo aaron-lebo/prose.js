@@ -29,14 +29,20 @@ function lift(node, safe) {
     return node;
 }
 
-function block(node, $return) {
-    let body = node.slice(-1)[0];
+function statement(node, type) {
+    let end = 'Statement';
+    if (node.type.endsWith(end)) {
+        return node;
+    }
+    return {type: (type || 'Return') + end, argument: node};
+}
+
+function block(body, $return) {
     let $body = [];
-    body = (body[0] == 'do' ? argsOf(body) : [convert(body)]);
+    body = body[0] == 'do' ? argsOf(body) : [convert(body)];
     for (let i = 0; i < body.length; i++) {
-        let $n = $return && i == body.length - 1 ? 
-            statement('Return', lift(body[i])) : 
-            lift(body[i], true);
+        let $n = body[i];
+        $n = $return && i == body.length - 1 ? statement(lift($n)) : lift($n, true);
         $body = $body.concat(vars);
         vars = [];
         $body.push($n.type.endsWith('Expression') ? 
@@ -47,17 +53,14 @@ function block(node, $return) {
     return {type: 'BlockStatement', body: $body}; 
 }
 
-function statement(type, node) {
-    return {type: type + 'Statement', argument: node};
-}
-
 function argsOf(node, $convert=true) {
     let args = node.slice(Array.isArray(node[1]) ? 1 : 2);
     return $convert ? args.map(convert) : args; 
 }
 
 function fun(name, node) {
-    let body = block(node, true);
+    let body = node.slice(-1)[0];
+    body = block(body, true);
     return {
         type: 'Function' + (name ? 'Declaration' : 'Expression'),
         name: name && convert(name),
@@ -132,30 +135,36 @@ let nodes = {
     }),
     regex: n => literal(RegExp.apply(null, argsOf(n, false))),
     function: n => fun(null, n), 
-    return: n => statement('Return', convert(n[2])),
-    throw: n => statement('Throw', convert(n[2])),
+    return: n => statement(convert(n[2])),
+    throw: n => statement(convert(n[2]), 'Throw'),
     '?': n => {
-        let [test, con, alt] = argsOf(n);
+        let [test, con, alt] = argsOf(n, false);
+        test = convert(test);
+        let unsafe = [con, alt].filter(n => n && n[0] == 'do').length > 0;
+        let fun = unsafe ? block : convert;
+        con = fun(con);
+        alt = alt ? fun(alt) : null;
         let statement = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
         return {
-            type: statement ? 'IfStatement' :  'ConditionalExpression', 
+            type: statement ? 'IfStatement' : 'ConditionalExpression', 
             test: test,
             consequent: con,
             alternate: alt || (statement ? null : literal(null)) 
         }
     },      
     for: n => {
+       let body = n.slice(-1)[0];
        return {
             type: 'WhileStatement',
             test: convert(n[2]),
-            body: block(n)
+            body: block(body)
         };
     },    
     '|': n => {
-        let [left, right] = n.args.map(convert);
+        let [left, right] = argsOf(n);
         return {
             type: 'LogicalExpression',
-            operator: n.node,
+            operator: '||',
             left: left,
             right: right
         }
@@ -176,14 +185,7 @@ let nodes = {
     '-': binary,
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
-    object: n => {
-        let args = argsOf(n, false);
-        if (args.length == 1) { 
-            let arg = args[0];
-            return Array.isArray(arg) ? arg : convert(arg);
-        }
-        return object(n); 
-    },
+    Obj: object,
     Array: n => ({type: 'ArrayExpression', elements: argsOf(n)}),      
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
     OrderedMap: n => call(id('Immutable.OrderedMap'), [object(n)]),    

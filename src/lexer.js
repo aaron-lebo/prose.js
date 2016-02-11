@@ -75,7 +75,7 @@ export default function lex(str) {
             value: val
         });
         let _ = val.match(/\n/);
-        line = _ ? _.length : 0;
+        line += _ ? _.length : 0;
         str = str.substring(len);
     }
     return tokens;

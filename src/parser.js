@@ -81,35 +81,36 @@ function container(power, start, end, $0, $1, $2) {
 
 literal(['#', 'boolean', 'name', 'number', 'string']); 
 symbol('regex', t => node('regex', t.value.split('`').slice(1), t.line));
-infix(18, '.');
-container(18, '[', ']',  
-    (t, args) => node('List', args. t.line),
-    (t, args) => node('OrderedMap', args, t.line),
-    (l, t, args) => node('at', [l].concat(args), t.line)
-);
-container(18, '{', '}', 
-    (t, args) => node('function', args, t.line),
-    (t, args) => node('HashMap', args, t.line)
-);
-container(17, '(', ')', 
-    (t, args) => args.length == 1 ? args[0] : node('Array', args, t.line),
-    (t, args) => node('object', args, t.line),
-    (l, t, args) => node(l, args, t.line)
-);
-infix(13, ['+', '-']);
-infix(10, ['==', '!=']);
-infix(7, '&');
-infix(6, '|');
+infixR(1, ':');
+infixR(10, ['=', ':=', '+=', '-=']);
+infixR(20, '?');
+infix(30, ['&', '|']);
 symbol(' ', null, (l, t, ts) => {
-    let exp = expression(ts, 3.5);
+    let exp = expression(ts, 35);
     if (exp[0] == 'name' || exp[0][2] == 'name') {
         return [exp, l];
     }
     exp.splice(2, 0, l);
     return exp;
-}, 3.5);
-infixR(3, ['=', ':=', '+=', '-=', '?']);
-infixR(2, ':');
+}, 35);
+infix(40, ['==', '!=']);
+infix(50, ['+', '-']);
+infix(60, ['*', '/']);
+infix(80, '.');
+container(80, '[', ']',  
+    (t, args) => node('List', args, t.line),
+    (t, args) => node('OrderedMap', args, t.line),
+    (l, t, args) => node('at', [l].concat(args), t.line)
+);
+container(80, '{', '}', 
+    (t, args) => node('function', args, t.line),
+    (t, args) => node('HashMap', args, t.line)
+);
+container(80, '(', ')', 
+    (t, args) => args.length == 1 ? args[0] : node('Array', args, t.line),
+    (t, args) => node('Obj', args, t.line),
+    (l, t, args) => node(l, args, t.line)
+);
 
 function expression(tokens, power=0) {
     let token = tokens.shift();
