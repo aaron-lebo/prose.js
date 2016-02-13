@@ -24,7 +24,7 @@ literal = {ids,
 }
 
 infix = {ids, power, right,
-    if(ids Array?, ids, Array new(ids)) map(i,  
+    ids Array? ?(ids, Array new(ids)) map(i,  
         i symbol(
             nil, 
             {l, t, ts,
@@ -57,7 +57,7 @@ getArgs = {tokens, end,
             token.type == end ?
                 return(args)
         ) 
-        !(cont) ?
+        cont not ?
             arg.push(tokens expression)
         token = tokens[0]
     )

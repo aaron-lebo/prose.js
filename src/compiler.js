@@ -79,8 +79,8 @@ function member(node, computed=false) {
     };
 }
  
-function call(callee, args) {
-    return {type: 'CallExpression', callee: callee, arguments: args};
+function call(callee, args, $new) {
+    return {type: ($new ? 'New' : 'Call') + 'Expression', callee: callee, arguments: args};
 }
  
 function object(node) {
@@ -135,6 +135,16 @@ let nodes = {
           precedence: escodegen.Precedence.Primary
     }),
     regex: n => literal(RegExp.apply(null, argsOf(n, false))),
+    new: n => {
+        let [callee, args] = argsOf(n);
+        return call(callee, [args], true);
+    },
+    not: n => ({
+        type: 'UnaryExpression',
+        operator: '!',
+        prefix: true,
+        argument: argsOf(n)[0]
+    }),
     function: n => fun(null, n), 
     return: n => statement(convert(n[2])),
     throw: n => statement(convert(n[2]), 'Throw'),
