@@ -57,17 +57,17 @@ getArgs = {tokens, end,
     )
 }
 
-container = {ends, power, $0, $1, $2,   
+container = {ends, power, fun, fun1, fun2,   
     start = ends[0]; end = ends[1]
     symbol(
         start, 
         {t, ts,
             args = getArgs(ts, end)
             (args.length == 0 | args filter(n,  n[0] == ':').length == 0) ? 
-                return: $0(t, args)
-            $1(t, args) 
+                return: fun(t, args)
+            fun1(t, args) 
         },
-        {l, t, ts, $2(l, t, ts getArgs(end))},
+        {l, t, ts, fun2(l, t, ts getArgs(end))},
         power
     )
 }
@@ -116,12 +116,12 @@ expression = {tokens, power,
 }
 
 default: parse = {tokens,
-    ast = []
+    ast = () 
     for(tokens[0],
-        [';', 'newline'].indexOf(tokens[0].type)  != -1 ?(
+        (';', 'newline').indexOf(tokens[0].type) != -1 ?(
             tokens.shift(),
             ast.push(tokens expression) 
-       ) 
+        ) 
     ) 
     ast
 }

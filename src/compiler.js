@@ -189,6 +189,7 @@ let nodes = {
     ':=': n => assignment(n, '='),
     '+=': assignment, 
     ':': n => {     
+        console.log(n[0], n[3]);
         if (n[0] == 'default') {
             return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3], false))};
         }
