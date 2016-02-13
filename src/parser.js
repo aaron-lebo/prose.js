@@ -69,7 +69,7 @@ function container(power, start, end, $0, $1, $2) {
         start, 
         (t, ts) => {
             let args = getArgs(ts, end);
-            if (args.length == 0 || args.filter(n => n[0] == ':').length == 0) {
+            if (args.length == 0 || args.filter(n => n[0] != ':').length != 0) {
                 return $0(t, args);
             }
             return $1(t, args); 
@@ -81,9 +81,9 @@ function container(power, start, end, $0, $1, $2) {
 
 literal(['#', 'boolean', 'name', 'number', 'string']); 
 symbol('regex', t => node('regex', t.value.split('`').slice(1), t.line));
-infixR(1, ':');
 infixR(10, ['=', ':=', '+=', '-=']);
 infixR(20, '?');
+infixR(25, ':');
 infix(30, ['&', '|']);
 symbol(' ', null, (l, t, ts) => {
     let exp = expression(ts, 35);
@@ -93,7 +93,7 @@ symbol(' ', null, (l, t, ts) => {
     exp.splice(2, 0, l);
     return exp;
 }, 35);
-infix(40, ['==', '!=']);
+infix(40, ['==', '!=', '<']);
 infix(50, ['+', '-']);
 infix(60, ['*', '/']);
 infix(80, '.');

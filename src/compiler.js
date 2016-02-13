@@ -124,6 +124,7 @@ function expression(type) {
 
 let assignment = expression('AssignmentExpression');
 let binary = expression('BinaryExpression');
+let logical = expression('LogicalExpression');
 
 let nodes = {
     boolean: n => literal(null), 
@@ -144,12 +145,12 @@ let nodes = {
         let fun = unsafe ? block : convert;
         con = fun(con);
         alt = alt ? fun(alt) : null;
-        let statement = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
+        let $statement = [con, alt].filter(n => n && n.type.endsWith('Statement')).length > 0; 
         return {
-            type: statement ? 'IfStatement' : 'ConditionalExpression', 
+            type: $statement ? 'IfStatement' : 'ConditionalExpression', 
             test: test,
             consequent: con,
-            alternate: alt || (statement ? null : literal(null)) 
+            alternate: alt || ($statement ? null : literal(null)) 
         }
     },      
     for: n => {
@@ -160,15 +161,8 @@ let nodes = {
             body: block(body)
         };
     },    
-    '|': n => {
-        let [left, right] = argsOf(n);
-        return {
-            type: 'LogicalExpression',
-            operator: '||',
-            left: left,
-            right: right
-        }
-    },    
+    '&': n => logical(n, '&&'), 
+    '|': n => logical(n, '||'), 
     at: n => member(n, true),
     import: n => {
         return {
@@ -185,6 +179,7 @@ let nodes = {
     '-': binary,
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
+    '<': binary,
     Obj: object,
     Array: n => ({type: 'ArrayExpression', elements: argsOf(n)}),      
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
@@ -194,7 +189,12 @@ let nodes = {
     ':=': n => assignment(n, '='),
     '+=': assignment, 
     ':': n => {     
-        return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3], false))};
+        if (n[0] == 'default') {
+            return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3], false))};
+        }
+        let args = argsOf(n, false);
+        args.splice(1, 0, {});
+        return statement(convert(args)); 
     }
 }
 
@@ -212,8 +212,11 @@ export default function compile(ast) {
         type: 'Program',
         body: [{
             type: 'ImportDeclaration',
-            specifiers: [{type: 'ImportDefaultSpecifier', id: id('Immutable') }],
+            specifiers: [{type: 'ImportDefaultSpecifier', id: id('Immutable')}],
             source: literal('immutable') 
-        }].concat(ast.map(convert))     
+        }].concat(ast.map(convert).map(n => {
+            return n.type.endsWith('Expression') ? 
+                {type: 'ExpressionStatement', expression: n} : n
+        }))
     }, {verbatim: 'raw'});
 }

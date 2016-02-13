@@ -1,13 +1,13 @@
-symbols = object()
+symbols = Obj()
 
 symbol = {id, prefix, infix, power,
     symbols[id] | (
         symbols[id] := ( 
             id: id,
             prefix: prefix | t {nil},
-            infix: infix | (l {
-                throw('missing operator')
-            }),
+            infix: infix | {l,
+                throw: 'missing operator'
+            },
             power: power | 0 
         ) 
     )
@@ -40,8 +40,8 @@ infixR = {ids, power,
 }
 
 getArgs = {tokens, end,
-    token = tokens[0]; arg = (); args = () 
-    for(token,
+    arg = (); args = () 
+    for(token = tokens[0],
         (';', 'newline').indexOf(token.type) != -1 ?(
             tokens.shift(),
             (end, ',').indexOf(token.type) != -1 ?(
@@ -51,7 +51,7 @@ getArgs = {tokens, end,
                     arg := () 
                 )
                 token.type == end ?
-                    return(args)
+                    return: args
         )) ? arg.push(tokens expression)
         token = tokens[0]
     )
@@ -72,25 +72,25 @@ container = {ends, power, $0, $1, $2,
     )
 }
 
-['#', 'boolean', 'name', 'number', 'string'] literal 
+('#', 'boolean', 'name', 'number', 'string') literal 
 'regex' symbol(t {'regex' node(t.value.split('`').slice(1), t.line)})
 '.' infix(18)
-['[', ']'] container(18,  
-    {t, args, 'List' node(args. t.line)},
+('[', ']') container(18,  
+    {t, args, 'List' node(args, t.line)},
     {t, args, 'OrderedMap' node(args, t.line)},
     {l, t, args, 'at' node([l].concat(args), t.line)}
 )
-['{', '}'] container(18, 
+('{', '}') container(18, 
     {t, args, 'function' node(args, t.line)},
     {t, args, 'HashMap' node(args, t.line)}
 )
-['(', ')'] container(17, 
-    {t, args, args.length == 1 ?(args[0], 'Array' node(args, t.line)},
+('(', ')') container(17, 
+    {t, args, args.length == 1 ?(args[0], 'Array' node(args, t.line))},
     {t, args, 'object' node(args, t.line)},
     {l, t, args, l node(args, t.line)}
 )
-['+', '-'] infix(13)
-['==', '!='] infix(10)
+('+', '-') infix(13)
+('==', '!=') infix(10)
 '&' infix(7)
 '|' infix(6)
 ' ' symbol(nil, l, {t, ts,
@@ -100,7 +100,7 @@ container = {ends, power, $0, $1, $2,
     exp.splice(2, 0, l)
     exp
 }, 3.5)
-['=', ':=', '+=', '-=', '?'] infixR(3)
+('=', ':=', '+=', '-=', '?') infixR(3)
 ':' infixR(2)
 
 expression = {tokens, power,
