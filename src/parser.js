@@ -81,9 +81,9 @@ function container(power, start, end, $0, $1, $2) {
 
 literal(['#', 'boolean', 'name', 'number', 'string']); 
 symbol('regex', t => node('regex', t.value.split('`').slice(1), t.line));
+infixR(5, ':');
 infixR(10, ['=', ':=', '+=', '-=']);
 infixR(20, '?');
-infixR(25, ':');
 infix(30, ['&', '|']);
 symbol(' ', null, (l, t, ts) => {
     let exp = expression(ts, 35);

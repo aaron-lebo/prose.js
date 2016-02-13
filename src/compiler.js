@@ -18,7 +18,7 @@ function lift(node, safe) {
     if (Array.isArray(node)) {
         return node.map(n => lift(n, safe));
     } else if (node && typeof node == 'object' && !(node instanceof RegExp)) {
-        if (!safe && node.type == 'VariableDeclaration') {
+        if (!safe && (node.type == 'VariableDeclaration')) {
             vars.push(node);
             return node.declarations[0].id;
         }
@@ -58,12 +58,12 @@ function argsOf(node, $convert=true) {
     return $convert ? args.map(convert) : args; 
 }
 
-function fun(name, node) {
+function fun(id, node) {
     let body = node.slice(-1)[0];
     body = block(body, true);
     return {
-        type: 'Function' + (name ? 'Declaration' : 'Expression'),
-        name: name && convert(name),
+        type: 'Function' + (id ? 'Declaration' : 'Expression'),
+        id: id && convert(id),
         params: node.slice(2, -1).map(convert),
         body: body
     };
@@ -187,10 +187,9 @@ let nodes = {
     '.': n => member(n), 
     '=': n => variable.apply(null, argsOf(n)),
     ':=': n => assignment(n, '='),
-    '+=': assignment, 
+    '+=': assignment,
     ':': n => {     
-        console.log(n[0], n[3]);
-        if (n[0] == 'default') {
+        if (n[0] == 'default' || n[2][2] == 'default') {
             return {type: 'ExportDefaultDeclaration', declaration: fun.apply(null, argsOf(n[3], false))};
         }
         let args = argsOf(n, false);
@@ -202,10 +201,8 @@ let nodes = {
 function convert(node) {
     let head = node[0]; 
     let parser = nodes[head] || nodes[head[2]];
-    return parser ? parser(node) : call(
-        Array.isArray(head) ? convert(head) : id(head), 
-        argsOf(node)
-    );
+    return parser ? parser(node) : 
+        call(Array.isArray(head) ? convert(head) : id(head), argsOf(node));
 }
 
 export default function compile(ast) {
