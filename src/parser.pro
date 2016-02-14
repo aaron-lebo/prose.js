@@ -18,21 +18,21 @@ node = {head, args, x,
 }
 
 literal = {ids,
-    ids map(i,
+    ids.map({i,
         i symbol(t {i node(t.value Array, t.line)})
-    ) 
+    }) 
 }
 
 infix = {ids, power, right,
-    ids Array? ?(ids, Array new(ids)) map(i,  
+    ?(Array.isArray(ids), ids, Array new(ids)).map({i,  
         i symbol(
             nil, 
             {l, t, ts,
-                i node(l, ts expression(right ?(power - 1, power)), t.line)
+                i node((l, ts expression(right ?(power - 1, power))), t.line)
             },
             power 
         ) 
-    ) 
+    }) 
 }
 
 infixR = {ids, power,
@@ -51,7 +51,7 @@ getArgs = {tokens, end,
             cont := true
             tokens.shift()
             arg.length != 0 ?(
-                args.push(arg.length == 1 ?(arg[0], ('do').concat(arg)))
+                args.push(arg.length == 1 ?(arg[0], new(Array, 'do').concat(arg)))
                 arg := () 
             )
             token.type == end ?
@@ -59,17 +59,17 @@ getArgs = {tokens, end,
         ) 
         cont not ?
             arg.push(tokens expression)
-        token = tokens[0]
+        token := tokens[0]
     )
 }
 
 wrap = {ends, power, fun, fun1, fun2,   
-    start = ends[0]; end = ends[1]
+    (start, end) = ends
     symbol(
         start, 
         {t, ts,
             args = getArgs(ts, end)
-            (args.length == 0 | args filter(n,  n[0] == ':').length == 0) ? 
+            (args.length == 0 | args.filter({n, n[0] != ':'}).length != 0) ? 
                 return(fun(t, args))
             fun1(t, args) 
         },
@@ -81,10 +81,10 @@ wrap = {ends, power, fun, fun1, fun2,
 ('#', 'boolean', 'name', 'number', 'string') literal 
 'regex' symbol(t {'regex' node(t.value.split('`').slice(1), t.line)})
 ':' infixR(5)
-('=', ':=', '+=', '-=', '?') infixR(10)
+('=', ':=', '+=', '-=') infixR(10)
 '?' infixR(20)
 ('&', '|') infix(30)
-' ' symbol(nil, l, {t, ts,
+' ' symbol(nil, {l, t, ts,
     exp = ts expression(35)
     exp[0] == 'name' | exp[0][2] == 'name' ? 
         return((exp, l))
@@ -98,7 +98,11 @@ wrap = {ends, power, fun, fun1, fun2,
 ('[', ']') wrap(80,  
     {t, args, 'List' node(args, t.line)},
     {t, args, 'OrderedMap' node(args, t.line)},
-    {l, t, args, 'at' node([l].concat(args), t.line)}
+    {l, t, args, 
+        $args = Array new
+        $args.push(l)
+        'at' node($args.concat(args), t.line)
+    }
 )
 ('{', '}') wrap(80, 
     {t, args, 'function' node(args, t.line)},
@@ -106,7 +110,7 @@ wrap = {ends, power, fun, fun1, fun2,
 )
 ('(', ')') wrap(80, 
     {t, args, args.length == 1 ?(args[0], 'Array' node(args, t.line))},
-    {t, args, 'object' node(args, t.line)},
+    {t, args, 'Obj' node(args, t.line)},
     {l, t, args, l node(args, t.line)}
 )
 

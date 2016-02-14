@@ -8,17 +8,14 @@ let match = function (re) {
 let quotes = function (quote) {
     return function (str) {
         let chr = str[0];
-        if (chr !== quote) {
+        if (chr !== quote)
             return 0;
-        }
         let len = 1;
         while (str[len] !== chr) {
-            if (str[len] === '\\') {
-                (len += 1)
-            }
+            str[len] === '\\' ? len += 1 : null;
             len += 1;
         }
-        len += 1
+        len += 1;
         return len + tokenizers.get('name')(str.slice(len));
     };
 };
@@ -64,9 +61,8 @@ export default function lex(str) {
         ]);
         let type = res[0];
         len = res[1];
-        if (len === 0) {
+        if (len === 0)
             throw str.substring(0);
-        }
         let val = str.substring(0, len);
         tokens.push({
             type: type === 'operator' ? val.replace(/\s/g, '') : type,
@@ -75,7 +71,7 @@ export default function lex(str) {
             value: val
         });
         let _ = val.match(/\n/);
-        line += _ ? _.length : 0;
+        line = _ ? _.length : 0;
         str = str.substring(len);
     }
     return tokens;

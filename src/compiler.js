@@ -137,7 +137,7 @@ let nodes = {
     regex: n => literal(RegExp.apply(null, argsOf(n, false))),
     new: n => {
         let [callee, args] = argsOf(n);
-        return call(callee, [args], true);
+        return call(callee, args ? [args]: [], true);
     },
     not: n => ({
         type: 'UnaryExpression',
