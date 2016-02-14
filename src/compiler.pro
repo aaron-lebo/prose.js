@@ -16,8 +16,8 @@ id = {name,
 vars = ()
 
 lift = {node, safe,
-    Array.isArray(node) ? (
-        node.map({n lift(safe)}),
+    Array.isArray(node) ?(
+        node.map({n, n lift(safe)}),
         if(node & node typeof == 'object' & node instanceof(RegExp) not, 
             if(safe not & node.type == 'VariableDeclaration',
                 vars.push(node)
@@ -32,10 +32,9 @@ lift = {node, safe,
 }
 
 statement = {node, $throw,
-    end = 'Statement'
-    node.type.endsWith(end) ?
+    node.type.endsWith(end = 'Statement') ?
         return(node)
-    (type: ($throw ? 'Throw' : 'Return') + end, argument: node)
+    (type: ($throw ?('Throw', 'Return') + end, argument: node)
 }
 
 block = {body, $return,
@@ -89,7 +88,7 @@ call = {callee, args, $new,
 object = {node,
     (
         type: 'ObjectExpression', 
-        properties: node argsOf(false).map(n {
+        properties: node argsOf(false).map({n, 
             (k, v) = n argsOf
             ( 
                 type: 'Property',
@@ -177,17 +176,14 @@ nodes = {
     '&': {n, n logical('&&')}, 
     '|': {n, n logical('||')}, 
     at: {n, n member(true)},
-    import: {n
-        ( 
+    import: {n, ( 
             type: 'VariableDeclaration',
             declarations: n.args.map({n, 
                 (left, right) = $n.args.map(convert)
                 left variable('require' id call(Array new(right)))
-
             }),
             kind: 'let'
-        )1       
-    },
+    )},
     '+': binary,
     '-': binary,
     '==': {n, n binary('===')},
