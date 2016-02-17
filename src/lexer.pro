@@ -60,7 +60,7 @@ default: lex = {str,
             line: line,
             value: val 
         ))
-        line += (_ = val.match(`\n`)) ?(_.length, 0);
+        line += val.split(`\n`).length - 1
         str := str.substring(len)
     ) 
     tokens
