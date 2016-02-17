@@ -38,7 +38,7 @@ let infix = function (ids, power, right) {
 let infixR = function (ids, power) {
     return infix(ids, power, true);
 };
-let getArgs = function (tokens, end) {
+let getArgs = function (start, tokens, end) {
     let arg = [];
     let args = [];
     let token = tokens[0];
@@ -67,6 +67,7 @@ let getArgs = function (tokens, end) {
         !cont ? arg.push(expression(tokens)) : null;
         token = tokens[0];
     }
+    throw start.line + ': ' + start.value + ' not closed';
 };
 let wrap = function (ends, power, fun, fun1, fun2) {
     let [
@@ -74,14 +75,14 @@ let wrap = function (ends, power, fun, fun1, fun2) {
         end
     ] = ends;
     return symbol(start, function (t, ts) {
-        let args = getArgs(ts, end);
+        let args = getArgs(t, ts, end);
         if (args.length === 0 || args.filter(function (n) {
                 return n[0] !== ':';
             }).length !== 0)
             return fun(t, args);
         return fun1(t, args);
     }, function (l, t, ts) {
-        return fun2(l, t, getArgs(ts, end));
+        return fun2(l, t, getArgs(t, ts, end));
     }, power);
 };
 literal([

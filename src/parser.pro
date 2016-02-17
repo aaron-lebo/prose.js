@@ -39,7 +39,7 @@ infixR = {ids, power,
     infix(ids, power, true)
 }
 
-getArgs = {tokens, end,
+getArgs = {start, tokens, end,
     arg = (); args = () 
     for(token = tokens[0],
         cont = false
@@ -61,6 +61,7 @@ getArgs = {tokens, end,
             arg.push(tokens expression)
         token := tokens[0]
     )
+    throw(start.line + ': ' + start.value + ' not closed')
 }
 
 wrap = {ends, power, fun, fun1, fun2,   
@@ -68,12 +69,12 @@ wrap = {ends, power, fun, fun1, fun2,
     symbol(
         start, 
         {t, ts,
-            args = getArgs(ts, end)
+            args = getArgs(t, ts, end)
             (args.length == 0 | args.filter({n, n[0] != ':'}).length != 0) ? 
                 return(fun(t, args))
             fun1(t, args) 
         },
-        {l, t, ts, fun2(l, t, ts getArgs(end))},
+        {l, t, ts, fun2(l, t, getArgs(t, ts, end))},
         power
     )
 }
