@@ -34,7 +34,7 @@ lift = {node, safe,
 statement = {node, $throw,
     node.type.endsWith(end = 'Statement') ?
         return(node)
-    (type: ($throw ?('Throw', 'Return') + end, argument: node)
+    (type: ($throw ?('Throw', 'Return')) + end, argument: node)
 }
 
 block = {body, $return,
@@ -48,7 +48,7 @@ block = {body, $return,
         $body.push($n.type.endsWith('Expression') ? ( 
             (type: 'ExpressionStatement', expression: $n),  
             $n
-        )
+        ))
     )
     (type: 'BlockStatement', body: $body) 
 }
@@ -82,7 +82,7 @@ member = {node, computed,
 }
  
 call = {callee, args, $new,
-    (type: ($new ?('New', 'Call') + 'Expression', callee: callee, arguments: args)
+    (type: ($new ?('New', 'Call')) + 'Expression', callee: callee, arguments: args)
 }
  
 object = {node,
@@ -162,9 +162,9 @@ nodes = {
             type: $statement ?('IfStatement', 'ConditionalExpression'), 
             test: test,
             consequent: con,
-            alternate: alt | $statement ?(nil, nil literal)) 
+            alternate: alt | $statement ?(nil, nil literal) 
         ) 
-    ),      
+    },      
     for: {n,
        body = n.slice(-1)[0]
        (
@@ -208,7 +208,7 @@ nodes = {
 
 convert = {node,
     head = node[0] 
-    if(parser = nodes[head] | nodes[head[2],
+    if(parser = nodes[head] | nodes[head[2]],
         node parser, 
         head Array.isArray ?(head convert, head id) call(node argsOf)
     )
