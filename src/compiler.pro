@@ -37,12 +37,15 @@ statement = {node, $throw,
     (type: ($throw ?('Throw', 'Return')) + end, argument: node)
 }
 
-block = {body, $return,
-    body := body[0] == 'do' ?(body argsOf, Array new(body convert))
+block = {body, fun$,
+    body := fun$ == false ?(
+        body.map(convert), 
+        body[0] == 'do' ?(body argsOf, Array new(body convert))
+    )
     i = 0; $body = () 
     for(i < body.length,
         $n = body[i]
-        $n := $return & i == body.length - 1 ?($n lift statement, $n lift(true))
+        $n := fun$ & i == body.length - 1 ?($n lift statement, $n lift(true))
         $body := $body.concat(vars)
         vars := () 
         $body.push($n.type.endsWith('Expression') ? ( 
@@ -50,7 +53,7 @@ block = {body, $return,
             $n
         ))
     )
-    (type: 'BlockStatement', body: $body) 
+    fun$ == false ?($body, (type: 'BlockStatement', body: $body)) 
 }
 
 
@@ -221,10 +224,6 @@ default: compile = {ast,
             type: 'ImportDeclaration',
             specifiers: Array new((type: 'ImportDefaultSpecifier', id: 'Immutable' id)),
             source: 'immutable' literal
-        )).concat(ast.map(convert).map({n, 
-            n.type.endsWith('Expression') not ?( 
-                (type: 'ExpressionStatement', expression: n), n
-            )
-        }))
+        )).concat(block(ast, false)) 
     ), (verbatim: 'raw'))
 }

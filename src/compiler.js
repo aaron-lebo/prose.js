@@ -37,12 +37,16 @@ function statement(node, type) {
     return {type: (type || 'Return') + end, argument: node};
 }
 
-function block(body, $return) {
+function block(body, fun$) {
     let $body = [];
-    body = body[0] == 'do' ? argsOf(body) : [convert(body)];
+    if (fun$ == false) {
+        body = body.map(convert); 
+    } else {
+        body = body[0] == 'do' ? argsOf(body) : [convert(body)];
+    }
     for (let i = 0; i < body.length; i++) {
         let $n = body[i];
-        $n = $return && i == body.length - 1 ? statement(lift($n)) : lift($n, true);
+        $n = fun$ && i == body.length - 1 ? statement(lift($n)) : lift($n, true);
         $body = $body.concat(vars);
         vars = [];
         $body.push($n.type.endsWith('Expression') ? 
@@ -50,7 +54,7 @@ function block(body, $return) {
             $n
         );
     }
-    return {type: 'BlockStatement', body: $body}; 
+    return fun$ == false ? $body : {type: 'BlockStatement', body: $body}; 
 }
 
 function argsOf(node, $convert=true) {
@@ -60,7 +64,7 @@ function argsOf(node, $convert=true) {
 
 function fun(id, node) {
     let body = node.slice(-1)[0];
-    body = block(body, true);
+    body = block(body, 'return');
     return {
         type: 'Function' + (id ? 'Declaration' : 'Expression'),
         id: id && convert(id),
@@ -222,9 +226,6 @@ export default function compile(ast) {
             type: 'ImportDeclaration',
             specifiers: [{type: 'ImportDefaultSpecifier', id: id('Immutable')}],
             source: literal('immutable') 
-        }].concat(ast.map(convert).map(n => {
-            return n.type.endsWith('Expression') ? 
-                {type: 'ExpressionStatement', expression: n} : n
-        }))
+        }].concat(block(ast, false))
     }, {verbatim: 'raw'});
 }
