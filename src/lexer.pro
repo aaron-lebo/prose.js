@@ -18,7 +18,7 @@ quotes = {quote,
 }
 
 tokenizers = [ 
-    '#': `^#.*[^\n]` match,
+    '#': `^[ \t\r]?#.*[^\n]` match,
     '.': `^\s*\.\s*` match,
     '(': `^\(\s*` match,
     ')': `^\s*\)` match,

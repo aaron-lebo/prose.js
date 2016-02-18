@@ -20,7 +20,7 @@ let quotes = function (quote) {
     };
 };
 let tokenizers = Immutable.OrderedMap({
-    '#': match(/^#.*[^\n]/),
+    '#': match(/^[ \t\r]?#.*[^\n]/),
     '.': match(/^\s*\.\s*/),
     '(': match(/^\(\s*/),
     ')': match(/^\s*\)/),
