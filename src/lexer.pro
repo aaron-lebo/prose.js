@@ -18,23 +18,23 @@ quotes = {quote,
 }
 
 tokenizers = [ 
-    '#': `^[ \t\r]?#.*[^\n]` match,
-    '.': `^\s*\.\s*` match,
-    '(': `^\(\s*` match,
-    ')': `^\s*\)` match,
-    '[': `^\[\s*` match,
-    ']': `^\s*\]` match,
-    '{': `^{\s*` match,
-    '}': `^\s*}` match,
-    ',': `^\s*,\s*` match,
-    ';': `^\s*;\s*` match,
-    ':': `^\s*:\s+` match,
-    operator: `^\s+[~!@\$%\^&\*\-_=\+|:<>\/\?]+\s+` match,
-    newline: `^\s*\n\s*` match,
-    ' ': `^\s+` match,
-    quote: `^:` match,
-    number: `^[0-9]+(\.[0-9]+)?` match,
-    boolean: `^nil` match, 
+    '#': `^[ \t\r]?#.*[^\n]`,
+    '.': `^\s*\.\s*`,
+    '(': `^\(\s*`,
+    ')': `^\s*\)`,
+    '[': `^\[\s*`,
+    ']': `^\s*\]`,
+    '{': `^{\s*`,
+    '}': `^\s*}`,
+    ',': `^\s*,\s*`,
+    ';': `^\s*;\s*`,
+    ':': `^\s*:\s+`,
+    operator: `^\s+[~!@\$%\^&\*\-_=\+|:<>\/\?]+\s+`,
+    newline: `^\s*\n\s*`,
+    ' ': `^\s+`,
+    quote: `^:`,
+    number: `^[0-9]+(\.[0-9]+)?`,
+    boolean: `^nil`, 
     name: {str, 
         $match = match(`^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*`i)(str)
         str[$match - 1] == ':' ?($match - 1, $match) 
@@ -48,7 +48,11 @@ default: lex = {str,
     len = nil; line = 1; tokens = () 
     for(str[0],
         res = tokenizers.entrySeq().reduce({m, t, 
-            m[1] == 0 ?((t[0], t[1](str)), m)
+            t$1 = t[1]
+            m[1] == 0 ?(
+                (t[0], (t$1 instanceof(RegExp) ?(t$1 match, t$1))(str)), 
+                m
+            )
         }, (null, 0)) 
         type = res[0]; len := res[1] 
         len == 0 ? 

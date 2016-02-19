@@ -13,7 +13,6 @@ function id(name) {
 } 
 
 let vars = [];
-
 function lift(node, safe) {
     if (Array.isArray(node)) {
         return node.map(n => lift(n, safe));
@@ -24,6 +23,22 @@ function lift(node, safe) {
         }
         Object.getOwnPropertyNames(node).forEach(n => {
             node[n] = lift(node[n], n == 'body');
+        });
+    }
+    return node;
+}
+
+let comments = [];
+function sweep(node, safe) {
+    if (Array.isArray(node)) {
+        return node.map(sweep);
+    } else if (node && typeof node == 'object' && !(node instanceof RegExp)) {
+        if (!safe && (node.type == '#')) {
+            comments.push(node);
+            return;
+        }
+        Object.getOwnPropertyNames(node).forEach(n => {
+            node[n] = sweep(node[n], n == 'body');
         });
     }
     return node;
@@ -46,13 +61,18 @@ function block(body, fun$) {
     }
     for (let i = 0; i < body.length; i++) {
         let $n = body[i];
-        $n = fun$ && i == body.length - 1 ? statement(lift($n)) : lift($n, true);
+        $n = sweep(fun$ && i == body.length - 1 ? statement(lift($n)) : lift($n, true));
+        if (!$n) {
+            continue;
+        }
         $body = $body.concat(vars);
         vars = [];
-        $body.push($n.type.endsWith('Expression') ? 
+        let $statement = $n.type.endsWith('Expression') ? 
             {type: 'ExpressionStatement', expression: $n} : 
-            $n
-        );
+            $n;
+        $statement.leadingComments = comments;
+        comments = [];
+        $body.push($statement);
     }
     return fun$ == false ? $body : {type: 'BlockStatement', body: $body}; 
 }
@@ -131,6 +151,7 @@ let binary = expression('BinaryExpression');
 let logical = expression('LogicalExpression');
 
 let nodes = {
+    '#': n => ({type: '#'}),
     boolean: n => literal(null), 
     name: n => id(n[2]),
     number: n => literal(parseFloat(n[2])),
@@ -194,6 +215,7 @@ let nodes = {
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
     '<': binary,
+    instanceof: n => binary(n, 'instanceof'),
     Obj: object,
     Array: n => ({type: 'ArrayExpression', elements: argsOf(n)}),      
     HashMap: n => call(id('Immutable.HashMap'), [object(n)]),
@@ -220,7 +242,8 @@ function convert(node) {
 }
 
 export default function compile(ast) {
-    return escodegen.generate({
+    let first = ast[0].slice(-1)[0];
+    return (/^[/s]?#!/.exec(first) ? first + '\n' : '') + escodegen.generate({
         type: 'Program',
         body: [{
             type: 'ImportDeclaration',

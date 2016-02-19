@@ -20,23 +20,23 @@ let quotes = function (quote) {
     };
 };
 let tokenizers = Immutable.OrderedMap({
-    '#': match(/^[ \t\r]?#.*[^\n]/),
-    '.': match(/^\s*\.\s*/),
-    '(': match(/^\(\s*/),
-    ')': match(/^\s*\)/),
-    '[': match(/^\[\s*/),
-    ']': match(/^\s*\]/),
-    '{': match(/^{\s*/),
-    '}': match(/^\s*}/),
-    ',': match(/^\s*,\s*/),
-    ';': match(/^\s*;\s*/),
-    ':': match(/^\s*:\s+/),
-    operator: match(/^\s+[~!@\$%\^&\*\-_=\+|:<>\/\?]+\s+/),
-    newline: match(/^\s*\n\s*/),
-    ' ': match(/^\s+/),
-    quote: match(/^:/),
-    number: match(/^[0-9]+(\.[0-9]+)?/),
-    boolean: match(/^nil/),
+    '#': /^[ \t\r]?#.*[^\n]/,
+    '.': /^\s*\.\s*/,
+    '(': /^\(\s*/,
+    ')': /^\s*\)/,
+    '[': /^\[\s*/,
+    ']': /^\s*\]/,
+    '{': /^{\s*/,
+    '}': /^\s*}/,
+    ',': /^\s*,\s*/,
+    ';': /^\s*;\s*/,
+    ':': /^\s*:\s+/,
+    operator: /^\s+[~!@\$%\^&\*\-_=\+|:<>\/\?]+\s+/,
+    newline: /^\s*\n\s*/,
+    ' ': /^\s+/,
+    quote: /^:/,
+    number: /^[0-9]+(\.[0-9]+)?/,
+    boolean: /^nil/,
     name: function (str) {
         let $match = match(/^[a-z~!@\$%\^&\*\-_=\+|:<>\/\?]+[a-z0-9~!@\$%\^&\*\-_=\+|:<>\/\?]*/i)(str);
         return str[$match - 1] === ':' ? $match - 1 : $match;
@@ -51,9 +51,10 @@ export default function lex(str) {
     let tokens = [];
     while (str[0]) {
         let res = tokenizers.entrySeq().reduce(function (m, t) {
+            let t$1 = t[1];
             return m[1] === 0 ? [
                 t[0],
-                t[1](str)
+                (t$1 instanceof RegExp ? match(t$1) : t$1)(str)
             ] : m;
         }, [
             null,
