@@ -10,7 +10,7 @@ import(
 
 args = process.argv.slice(2) parseArgs
 ast = fs.readFileSync(args['_'][0]).toString() lex parse
-args.n if( 
+args.n ?( 
     ast JSON.stringify(nil, 1),
     ast compile
 ) console.log

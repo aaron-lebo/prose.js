@@ -211,7 +211,7 @@ nodes = {
 
 convert = {node,
     head = node[0] 
-    if(parser = nodes[head] | nodes[head[2]],
+    (parser = nodes[head] | nodes[head[2]]) ?(
         node parser, 
         head Array.isArray ?(head convert, head id) call(node argsOf)
     )
@@ -220,7 +220,7 @@ convert = {node,
 default: compile = {ast,
     escodegen.generate((
         type: 'Program',
-        body: Array new((
+        body: new(Array, (
             type: 'ImportDeclaration',
             specifiers: Array new((type: 'ImportDefaultSpecifier', id: 'Immutable' id)),
             source: 'immutable' literal

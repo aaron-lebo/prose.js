@@ -109,7 +109,13 @@ infix([
 ], 30);
 symbol(' ', null, function (l, t, ts) {
     let exp = expression(ts, 35);
-    if (exp[0] === 'name' || exp[0][2] === 'name')
+    if ([
+            '.',
+            'name'
+        ].indexOf(exp[0]) > -1 || [
+            '.',
+            'name'
+        ].indexOf(exp[0][2]) > -1)
         return [
             exp,
             l
@@ -120,7 +126,8 @@ symbol(' ', null, function (l, t, ts) {
 infix([
     '==',
     '!=',
-    '<'
+    '<',
+    '>'
 ], 40);
 infix([
     '+',

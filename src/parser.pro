@@ -87,12 +87,12 @@ wrap = {ends, power, fun, fun1, fun2,
 ('&', '|') infix(30)
 ' ' symbol(nil, {l, t, ts,
     exp = ts expression(35)
-    exp[0] == 'name' | exp[0][2] == 'name' ? 
+    ('.', 'name').indexOf(exp[0]) > -1 | ('.', 'name').indexOf(exp[0][2]) > -1 ? 
         return((exp, l))
     exp.splice(2, 0, l)
     exp
 }, 35)
-('==', '!=', '<') infix(40)
+('==', '!=', '<', '>') infix(40)
 ('+', '-') infix(50)
 ('*', '/') infix(60)
 '.' infix(80)

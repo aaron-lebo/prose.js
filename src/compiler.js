@@ -67,6 +67,10 @@ function block(body, fun$) {
         }
         $body = $body.concat(vars);
         vars = [];
+        if ($n.type == 'statements') {
+            $body = $body.concat($n.args);
+            continue;
+        }
         let $statement = $n.type.endsWith('Expression') ? 
             {type: 'ExpressionStatement', expression: $n} : 
             $n;
@@ -201,20 +205,23 @@ let nodes = {
     at: n => member(n, true),
     import: n => {
         return {
-            type: 'VariableDeclaration',
-            declarations: n.args.map($n => {
-                let [left, right] = $n.args.map(convert);
-                return variable(left, call(id('require'), [right]));
-
-            }),
-            kind: 'let'
-        };       
+            type: 'statements', 
+            args: argsOf(n, false).map($n => {
+                let [spec, source] = argsOf($n);
+                return {
+                    type: 'ImportDeclaration',
+                    specifiers: [{type: 'ImportDefaultSpecifier', id: spec}],
+                    source: source 
+                };
+            })
+        };
     },
     '+': binary,
     '-': binary,
     '==': n => binary(n, '==='),
     '!=': n => binary(n, '!=='),
     '<': binary,
+    '>': binary,
     instanceof: n => binary(n, 'instanceof'),
     Obj: object,
     Array: n => ({type: 'ArrayExpression', elements: argsOf(n)}),      
