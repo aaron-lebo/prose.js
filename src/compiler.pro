@@ -18,8 +18,8 @@ vars = ()
 lift = {node, safe,
     Array.isArray(node) ?(
         node.map({n, n lift(safe)}),
-        if(node & node typeof == 'object' & node instanceof(RegExp) not, 
-            if(safe not & node.type == 'VariableDeclaration',
+        ?(node & node typeof == 'object' & node instanceof(RegExp) not, 
+            ?(safe not & node.type == 'VariableDeclaration',
                 vars.push(node)
                 return(node.declarations[0].id)
             )            

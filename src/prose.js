@@ -1,20 +1,10 @@
 #! /usr/bin/env node
-
+import Immutable from 'immutable';
 import fs from 'fs';
 import parseArgs from 'minimist';
-
 import lex from './lexer';
 import parse from './parser';
 import compile from './compiler';
-
 let args = parseArgs(process.argv.slice(2));
-let file = fs.readFileSync(args['_'][0]);
-let tokens = lex(file.toString()); 
-let ast = parse(tokens);
-if (args.n) {
-    console.log(require('util').inspect(ast, 0, null));
-} else if (args.c) {
-    console.log(JSON.stringify(ast, null, 2));
-} else {
-    console.log(compile(ast));
-}
+let ast = parse(lex(fs.readFileSync(args['_'][0]).toString()));
+console.log(args.n ? JSON.stringify(ast, null, 1) : compile(ast));
